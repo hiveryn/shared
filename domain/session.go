@@ -34,10 +34,20 @@ const (
 	SessionRunFailureUserCancelled SessionRunFailureReason = "user_cancelled"
 )
 
+type MCPServerSnapshot struct {
+	Command           string            `json:"command,omitempty"`
+	Args              []string          `json:"args,omitempty"`
+	Env               map[string]string `json:"env,omitempty"`
+	CWD               string            `json:"cwd,omitempty"`
+	URL               string            `json:"url,omitempty"`
+	BearerTokenEnvVar string            `json:"bearer_token_env_var,omitempty"`
+}
+
 type AgentProfileSnapshot struct {
-	Agent string            `json:"agent"`
-	Args  []string          `json:"args"`
-	Env   map[string]string `json:"env"`
+	Agent string                       `json:"agent"`
+	Args  []string                     `json:"args"`
+	Env   map[string]string            `json:"env"`
+	MCP   map[string]MCPServerSnapshot `json:"mcp,omitempty"`
 }
 
 type SessionIntent struct {
@@ -176,13 +186,25 @@ type TerminalInfo struct {
 	Status     string `json:"status"`
 }
 
-type CreateTerminalParams struct{}
+type TerminalPlacement string
+
+const (
+	TerminalPlacementTab   TerminalPlacement = "tab"
+	TerminalPlacementSplit TerminalPlacement = "split"
+)
+
+type CreateTerminalParams struct {
+	Placement TerminalPlacement `json:"placement"`
+	BaseTabID string            `json:"base_tab_id,omitempty"`
+}
 
 type SessionTab struct {
-	Type       string `json:"type"`
-	TerminalID string `json:"id,omitempty"`
-	Command    string `json:"command,omitempty"`
-	Status     string `json:"status,omitempty"`
+	Type       string            `json:"type"`
+	TerminalID string            `json:"id,omitempty"`
+	Command    string            `json:"command,omitempty"`
+	Status     string            `json:"status,omitempty"`
+	Placement  TerminalPlacement `json:"placement,omitempty"`
+	BaseTabID  string            `json:"base_tab_id,omitempty"`
 }
 
 type ArchitectConclusion struct {
