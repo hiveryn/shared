@@ -15,6 +15,8 @@ export type SessionRunFailureReason =
 export interface AgentProfileSnapshot {
   agent: string;
   model?: string;
+  yolo?: boolean;
+  mode?: string;
   args: string[];
   env: Record<string, string>;
 }
