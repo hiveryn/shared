@@ -14,6 +14,7 @@ export type SessionRunFailureReason =
 
 export interface AgentProfileSnapshot {
   agent: string;
+  model?: string;
   args: string[];
   env: Record<string, string>;
 }
@@ -154,13 +155,19 @@ export interface TerminalInfo {
   status: string;
 }
 
-export interface CreateTerminalParams {}
+export type TerminalPlacement = 'tab' | 'split';
+
+export type CreateTerminalParams =
+  | { placement: 'tab' }
+  | { placement: 'split'; base_tab_id: string };
 
 export interface SessionTab {
   type: string;
   id?: string;
   command?: string;
   status?: string;
+  placement?: TerminalPlacement;
+  base_tab_id?: string;
 }
 
 export interface ArchitectConclusion {

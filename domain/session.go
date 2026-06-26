@@ -45,6 +45,7 @@ type MCPServerSnapshot struct {
 
 type AgentProfileSnapshot struct {
 	Agent string                       `json:"agent"`
+	Model string                       `json:"model,omitempty"`
 	Args  []string                     `json:"args"`
 	Env   map[string]string            `json:"env"`
 	MCP   map[string]MCPServerSnapshot `json:"mcp,omitempty"`
