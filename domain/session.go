@@ -157,11 +157,45 @@ type AppendSessionEventParams struct {
 	At                time.Time
 }
 
+// ConcludeSessionParams carries the structured conclusion input from the MCP
+// conclude tools through to the daemon write path. The daemon renders the
+// structured narrative/list fields into the canonical conclusion.md markdown
+// body (see sessionruntime.render*ConclusionBody); Body is the rendered output
+// carrier set by the daemon, not a wire input. The [fm] metadata fields
+// (Commits/Rejected/RejectionReason, plus server-computed timestamps/agent)
+// still flow into frontmatter exactly as before.
 type ConcludeSessionParams struct {
 	Body            string
 	Commits         []CommitRef
 	Rejected        bool
 	RejectionReason string
+
+	// Structured body fields (rendered into markdown sections). Which fields
+	// are populated/required depends on the session type; see the per-type
+	// render functions in the daemon.
+	Summary         string        // all types (required)
+	Narrative       string        // architect (required)
+	Implementation  string        // ticket (required unless rejected)
+	Findings        string        // freeform (required)
+	Verification    string        // ticket (optional)
+	TicketsTouched  []TicketTouch // architect (optional)
+	Decisions       []string      // architect (optional)
+	ConfigChanges   []string      // architect (optional)
+	UserPriorities  []string      // architect (optional)
+	Deviations      []string      // ticket (optional)
+	FollowUps       []string      // ticket (required; "none" allowed)
+	Recommendations []string      // freeform (required; "none" allowed)
+	OpenQuestions   []string      // all types (required; "none" allowed)
+	NextSteps       []string      // architect (required; "none" allowed)
+}
+
+// TicketTouch is an architect-conclusion input entry describing a board delta.
+// Input contract only — rendered into the conclusion body, never persisted as
+// structured data.
+type TicketTouch struct {
+	ID     string `json:"id"`
+	Action string `json:"action"` // created | updated | deleted
+	Note   string `json:"note,omitempty"`
 }
 
 type ConcludeSessionResult struct {
