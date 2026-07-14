@@ -162,7 +162,7 @@ type AppendSessionEventParams struct {
 // structured narrative/section fields into the canonical conclusion.md markdown
 // body (see sessionruntime.render*ConclusionBody); Body is the rendered output
 // carrier set by the daemon, not a wire input. The [fm] metadata fields
-// (Commits/Rejected/RejectionReason, plus server-computed timestamps/agent)
+// (Commits/Outcome/RejectionReason, plus server-computed timestamps/agent)
 // still flow into frontmatter exactly as before.
 //
 // Every presentational section is a Markdown string — the agent authors its own
@@ -173,7 +173,7 @@ type AppendSessionEventParams struct {
 type ConcludeSessionParams struct {
 	Body            string
 	Commits         []CommitRef
-	Rejected        bool
+	Outcome         TicketOutcome
 	RejectionReason string
 
 	// Structured body fields (rendered into markdown sections). Which fields
@@ -204,7 +204,7 @@ type ConcludeSessionResult struct {
 type MoveTicketToDoneParams struct {
 	Body            string
 	Commits         []CommitRef
-	Rejected        bool
+	Outcome         TicketOutcome
 	RejectionReason string
 }
 

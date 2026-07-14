@@ -1,4 +1,5 @@
 import type { CommitRef } from "./commit";
+import type { TicketOutcome } from "./ticket";
 
 export type SessionType = "architect" | "ticket" | "freeform";
 
@@ -128,7 +129,7 @@ export interface AppendSessionEventParams {
 export interface ConcludeSessionParams {
   body: string;
   commits: CommitRef[];
-  rejected: boolean;
+  outcome: TicketOutcome;
   rejection_reason: string;
 }
 
@@ -141,7 +142,7 @@ export interface ConcludeSessionResult {
 export interface MoveTicketToDoneParams {
   body: string;
   commits: CommitRef[];
-  rejected: boolean;
+  outcome: TicketOutcome;
   rejection_reason: string;
 }
 

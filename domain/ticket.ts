@@ -19,12 +19,14 @@ export interface TicketSummary {
   warnings: TicketWarning[];
 }
 
+export type TicketOutcome = "completed" | "exploratory" | "rejected";
+
 export interface TicketConclusion {
   started_at: string;
   concluded_at: string;
   agent?: string;
   profile?: string;
-  rejected: boolean;
+  outcome: TicketOutcome;
   rejection_reason?: string;
   commits: CommitRef[];
   body: string;
