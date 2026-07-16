@@ -233,12 +233,24 @@ type CreateTerminalParams struct {
 }
 
 type SessionTab struct {
-	Type       string            `json:"type"`
-	TerminalID string            `json:"id,omitempty"`
-	Command    string            `json:"command,omitempty"`
-	Status     string            `json:"status,omitempty"`
-	Placement  TerminalPlacement `json:"placement,omitempty"`
-	BaseTabID  string            `json:"base_tab_id,omitempty"`
+	Type      string            `json:"type"`
+	ID        string            `json:"id,omitempty"`
+	Command   string            `json:"command,omitempty"`
+	Status    string            `json:"status,omitempty"`
+	Placement TerminalPlacement `json:"placement,omitempty"`
+	BaseTabID string            `json:"base_tab_id,omitempty"`
+	Target    string            `json:"target,omitempty"`
+}
+
+type PreviewBrowserTabParams struct {
+	Target string `json:"target"`
+	TabID  string `json:"tab_id,omitempty"`
+}
+
+type BrowserTabInfo struct {
+	TabID     string `json:"tab_id"`
+	SessionID string `json:"session_id"`
+	Target    string `json:"target"`
 }
 
 type ArchitectConclusion struct {

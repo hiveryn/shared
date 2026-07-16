@@ -11,7 +11,7 @@ Shared domain types for the Hiveryn ecosystem.
 - Enums and string types: `SessionType`, `SessionCreatedBy`, `SessionRunStatus`, `SessionRunFailureReason`, `TicketStatus`
 - Core entities: `SessionIntent`, `SessionRun`, `SessionEvent`, `SessionTab`, `Ticket`, `TicketSummary`, `TicketBoard`, `TicketConclusion`, etc.
 - Param/result structs for operations: `Create*Params`, `Conclude*Params`, `Move*Params`, `Edit*Params`, etc.
-- Supporting types: `CommitRef`, `ArchitectConclusion`, `ConclusionSummary`, `TerminalInfo`, `CreateTerminalParams`, `AgentProfileSnapshot`
+- Supporting types: `CommitRef`, `ArchitectConclusion`, `ConclusionSummary`, `TerminalInfo`, `CreateTerminalParams`, `PreviewBrowserTabParams`, `BrowserTabInfo`, `AgentProfileSnapshot`
 - Error types: `NotFoundError`, `ValidationError`, `ConflictError`, `InternalError` (and sentinel `ErrNotFound`)
 - Wire types used across API/MCP: `CreateSessionIntentRequest`, `AppendSessionEventParams`, etc.
 
