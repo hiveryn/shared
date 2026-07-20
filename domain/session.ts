@@ -22,7 +22,7 @@ export interface AgentProfileSnapshot {
   env: Record<string, string>;
 }
 
-export interface SessionIntent {
+export interface Session {
   id: string;
   architect_key: string;
   session_type: SessionType;
@@ -38,7 +38,7 @@ export interface SessionIntent {
 
 export interface SessionRun {
   id: string;
-  session_intent_id: string;
+  session_id: string;
   status: SessionRunStatus;
   agent_status?: string;
   profile_name: string;
@@ -55,7 +55,7 @@ export interface SessionRun {
 
 export interface SessionEvent {
   id: string;
-  session_intent_id: string;
+  session_id: string;
   run_id?: string;
   seq: number;
   type: string;
@@ -70,7 +70,7 @@ export interface SessionEvent {
   at: string;
 }
 
-export interface CreateSessionIntentRequest {
+export interface CreateSessionRequest {
   session_type: SessionType;
   architect_key: string;
   ticket_id?: string;
@@ -79,7 +79,7 @@ export interface CreateSessionIntentRequest {
   slug?: string;
 }
 
-export interface CreateSessionIntentParams {
+export interface CreateSessionParams {
   id: string;
   architect_key: string;
   session_type: SessionType;
@@ -98,7 +98,7 @@ export interface CreateSessionRunRequest {
 
 export interface CreateSessionRunParams {
   id: string;
-  session_intent_id: string;
+  session_id: string;
   profile_name: string;
   profile_snapshot: AgentProfileSnapshot;
   workdir: string;
@@ -112,7 +112,7 @@ export interface CreateSessionRunResult {
 }
 
 export interface AppendSessionEventParams {
-  session_intent_id: string;
+  session_id: string;
   run_id: string;
   type: string;
   status: string;

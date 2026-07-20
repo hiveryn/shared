@@ -53,7 +53,7 @@ type AgentProfileSnapshot struct {
 	MCP   map[string]MCPServerSnapshot `json:"mcp,omitempty"`
 }
 
-type SessionIntent struct {
+type Session struct {
 	ID           string           `json:"id"`
 	ArchitectKey string           `json:"architect_key"`
 	SessionType  SessionType      `json:"session_type"`
@@ -69,7 +69,7 @@ type SessionIntent struct {
 
 type SessionRun struct {
 	ID              string                  `json:"id"`
-	SessionIntentID string                  `json:"session_intent_id"`
+	SessionID string                  `json:"session_id"`
 	Status          SessionRunStatus        `json:"status"`
 	AgentStatus     string                  `json:"agent_status,omitempty"`
 	ProfileName     string                  `json:"profile_name"`
@@ -86,7 +86,7 @@ type SessionRun struct {
 
 type SessionEvent struct {
 	ID                string            `json:"id"`
-	SessionIntentID   string            `json:"session_intent_id"`
+	SessionID   string            `json:"session_id"`
 	RunID             string            `json:"run_id,omitempty"`
 	Seq               int64             `json:"seq"`
 	Type              string            `json:"type"`
@@ -101,7 +101,7 @@ type SessionEvent struct {
 	At                time.Time         `json:"at"`
 }
 
-type CreateSessionIntentRequest struct {
+type CreateSessionRequest struct {
 	SessionType  SessionType `json:"session_type"`
 	ArchitectKey string      `json:"architect_key"`
 	TicketID     string      `json:"ticket_id,omitempty"`
@@ -110,7 +110,7 @@ type CreateSessionIntentRequest struct {
 	Slug         string      `json:"slug,omitempty"`
 }
 
-type CreateSessionIntentParams struct {
+type CreateSessionParams struct {
 	ID           string
 	ArchitectKey string
 	SessionType  SessionType
@@ -129,7 +129,7 @@ type CreateSessionRunRequest struct {
 
 type CreateSessionRunParams struct {
 	ID              string
-	SessionIntentID string
+	SessionID string
 	ProfileName     string
 	ProfileSnapshot AgentProfileSnapshot
 	Workdir         string
@@ -143,7 +143,7 @@ type CreateSessionRunResult struct {
 }
 
 type AppendSessionEventParams struct {
-	SessionIntentID   string
+	SessionID   string
 	RunID             string
 	Type              string
 	Status            string
