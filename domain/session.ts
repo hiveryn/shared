@@ -29,6 +29,8 @@ export interface Session {
   context_id: string;
   prompt: string;
   workdir: string;
+  additional_repos: string[];
+  additional_workdirs: string[];
   instructions?: string;
   created_by?: SessionCreatedBy;
   created_at: string;
@@ -44,6 +46,8 @@ export interface SessionRun {
   profile_name: string;
   profile_snapshot?: AgentProfileSnapshot;
   workdir: string;
+  additional_repos: string[];
+  additional_workdirs: string[];
   native_id?: string;
   failure_reason?: SessionRunFailureReason;
   main_terminal_id?: string;
