@@ -54,39 +54,43 @@ type AgentProfileSnapshot struct {
 }
 
 type Session struct {
-	ID           string           `json:"id"`
-	ArchitectKey string           `json:"architect_key"`
-	SessionType  SessionType      `json:"session_type"`
-	ContextID    string           `json:"context_id"`
-	Prompt       string           `json:"prompt"`
-	Workdir      string           `json:"workdir"`
-	Instructions string           `json:"instructions,omitempty"`
-	CreatedBy    SessionCreatedBy `json:"created_by,omitempty"`
-	CreatedAt    time.Time        `json:"created_at"`
-	UpdatedAt    time.Time        `json:"updated_at"`
-	CurrentRun   *SessionRun      `json:"current_run,omitempty"`
+	ID                 string           `json:"id"`
+	ArchitectKey       string           `json:"architect_key"`
+	SessionType        SessionType      `json:"session_type"`
+	ContextID          string           `json:"context_id"`
+	Prompt             string           `json:"prompt"`
+	Workdir            string           `json:"workdir"`
+	AdditionalRepos    []string         `json:"additional_repos"`
+	AdditionalWorkdirs []string         `json:"additional_workdirs"`
+	Instructions       string           `json:"instructions,omitempty"`
+	CreatedBy          SessionCreatedBy `json:"created_by,omitempty"`
+	CreatedAt          time.Time        `json:"created_at"`
+	UpdatedAt          time.Time        `json:"updated_at"`
+	CurrentRun         *SessionRun      `json:"current_run,omitempty"`
 }
 
 type SessionRun struct {
-	ID              string                  `json:"id"`
-	SessionID string                  `json:"session_id"`
-	Status          SessionRunStatus        `json:"status"`
-	AgentStatus     string                  `json:"agent_status,omitempty"`
-	ProfileName     string                  `json:"profile_name"`
-	ProfileSnapshot *AgentProfileSnapshot   `json:"profile_snapshot,omitempty"`
-	Workdir         string                  `json:"workdir"`
-	NativeID        string                  `json:"native_id,omitempty"`
-	FailureReason   SessionRunFailureReason `json:"failure_reason,omitempty"`
-	MainTerminalID  string                  `json:"main_terminal_id,omitempty"`
-	StartedAt       *time.Time              `json:"started_at,omitempty"`
-	EndedAt         *time.Time              `json:"ended_at,omitempty"`
-	CreatedAt       time.Time               `json:"created_at"`
-	UpdatedAt       time.Time               `json:"updated_at"`
+	ID                 string                  `json:"id"`
+	SessionID          string                  `json:"session_id"`
+	Status             SessionRunStatus        `json:"status"`
+	AgentStatus        string                  `json:"agent_status,omitempty"`
+	ProfileName        string                  `json:"profile_name"`
+	ProfileSnapshot    *AgentProfileSnapshot   `json:"profile_snapshot,omitempty"`
+	Workdir            string                  `json:"workdir"`
+	AdditionalRepos    []string                `json:"additional_repos"`
+	AdditionalWorkdirs []string                `json:"additional_workdirs"`
+	NativeID           string                  `json:"native_id,omitempty"`
+	FailureReason      SessionRunFailureReason `json:"failure_reason,omitempty"`
+	MainTerminalID     string                  `json:"main_terminal_id,omitempty"`
+	StartedAt          *time.Time              `json:"started_at,omitempty"`
+	EndedAt            *time.Time              `json:"ended_at,omitempty"`
+	CreatedAt          time.Time               `json:"created_at"`
+	UpdatedAt          time.Time               `json:"updated_at"`
 }
 
 type SessionEvent struct {
 	ID                string            `json:"id"`
-	SessionID   string            `json:"session_id"`
+	SessionID         string            `json:"session_id"`
 	RunID             string            `json:"run_id,omitempty"`
 	Seq               int64             `json:"seq"`
 	Type              string            `json:"type"`
@@ -111,14 +115,16 @@ type CreateSessionRequest struct {
 }
 
 type CreateSessionParams struct {
-	ID           string
-	ArchitectKey string
-	SessionType  SessionType
-	ContextID    string
-	Prompt       string
-	Workdir      string
-	Instructions string
-	CreatedBy    SessionCreatedBy
+	ID                 string
+	ArchitectKey       string
+	SessionType        SessionType
+	ContextID          string
+	Prompt             string
+	Workdir            string
+	AdditionalRepos    []string
+	AdditionalWorkdirs []string
+	Instructions       string
+	CreatedBy          SessionCreatedBy
 }
 
 type CreateSessionRunRequest struct {
@@ -128,13 +134,15 @@ type CreateSessionRunRequest struct {
 }
 
 type CreateSessionRunParams struct {
-	ID              string
-	SessionID string
-	ProfileName     string
-	ProfileSnapshot AgentProfileSnapshot
-	Workdir         string
-	NativeID        string
-	StartedAt       time.Time
+	ID                 string
+	SessionID          string
+	ProfileName        string
+	ProfileSnapshot    AgentProfileSnapshot
+	Workdir            string
+	AdditionalRepos    []string
+	AdditionalWorkdirs []string
+	NativeID           string
+	StartedAt          time.Time
 }
 
 type CreateSessionRunResult struct {
@@ -143,7 +151,7 @@ type CreateSessionRunResult struct {
 }
 
 type AppendSessionEventParams struct {
-	SessionID   string
+	SessionID         string
 	RunID             string
 	Type              string
 	Status            string
