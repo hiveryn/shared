@@ -25,15 +25,18 @@ type TicketWarning struct {
 }
 
 type TicketSummary struct {
-	ID            string          `json:"id"`
-	Status        TicketStatus    `json:"status"`
-	Title         string          `json:"title"`
-	Repo          string          `json:"repo,omitempty"`
-	Created       *time.Time      `json:"created,omitempty"`
-	Updated       *time.Time      `json:"updated,omitempty"`
-	References    []string        `json:"references"`
-	HasConclusion bool            `json:"has_conclusion"`
-	Warnings      []TicketWarning `json:"warnings"`
+	ID     string       `json:"id"`
+	Status TicketStatus `json:"status"`
+	Title  string       `json:"title"`
+	Repo   string       `json:"repo,omitempty"`
+	// AdditionalRepos are extra repositories in scope beyond the primary Repo.
+	// Order carries no meaning; keys must be unique and must not include Repo.
+	AdditionalRepos []string        `json:"additional_repos"`
+	Created         *time.Time      `json:"created,omitempty"`
+	Updated         *time.Time      `json:"updated,omitempty"`
+	References      []string        `json:"references"`
+	HasConclusion   bool            `json:"has_conclusion"`
+	Warnings        []TicketWarning `json:"warnings"`
 }
 
 // TicketOutcome distinguishes how a ticket conclusion ended: shipped commits,
@@ -80,11 +83,12 @@ type TicketBoard struct {
 }
 
 type CreateTicketParams struct {
-	Title      string
-	Repo       string
-	Body       string
-	References []string
-	Now        time.Time
+	Title           string
+	Repo            string
+	AdditionalRepos []string
+	Body            string
+	References      []string
+	Now             time.Time
 }
 
 type EditTicketParams struct {
@@ -95,10 +99,11 @@ type EditTicketParams struct {
 }
 
 type UpdateTicketMetadataParams struct {
-	Title      *string
-	Repo       *string
-	References *[]string
-	Now        time.Time
+	Title           *string
+	Repo            *string
+	AdditionalRepos *[]string
+	References      *[]string
+	Now             time.Time
 }
 
 type MoveTicketParams struct {

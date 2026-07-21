@@ -12,6 +12,7 @@ export interface TicketSummary {
   status: TicketStatus;
   title: string;
   repo?: string;
+  additional_repos: string[];
   created?: string;
   updated?: string;
   references: string[];
@@ -46,6 +47,7 @@ export interface TicketBoard {
 export interface CreateTicketParams {
   title: string;
   repo: string;
+  additionalRepos: string[];
   body: string;
   references: string[];
   now: string;
@@ -61,6 +63,7 @@ export interface EditTicketParams {
 export interface UpdateTicketMetadataParams {
   title?: string;
   repo?: string;
+  additionalRepos?: string[];
   references?: string[];
   now: string;
 }
