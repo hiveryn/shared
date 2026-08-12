@@ -14,6 +14,7 @@ Shared domain types for the Hiveryn ecosystem.
 - Supporting types: `CommitRef`, `ArchitectConclusion`, `ConclusionSummary`, `TerminalInfo`, `CreateTerminalParams`, `PreviewBrowserTabParams`, `BrowserTabInfo`, `AgentProfileSnapshot`
 - Error types: `NotFoundError`, `ValidationError`, `ConflictError`, `InternalError` (and sentinel `ErrNotFound`)
 - Wire types used across API/MCP: `CreateSessionRequest`, `AppendSessionEventParams`, etc.
+- Stream contracts consumed by more than one repo: `ArchitectEvent` / `ArchitectEventReason` (the architect SSE stream — its `session_started` / `session_ended` reasons are the only place a session id is announced, so the desktop can discover sessions it did not create)
 
 ## What does NOT belong here
 
