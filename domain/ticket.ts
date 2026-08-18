@@ -7,6 +7,10 @@ export interface TicketWarning {
   message: string;
 }
 
+export type TicketReference =
+  | { value: string; type: "ticket"; exists: boolean }
+  | { value: string; type: "path"; exists: boolean; kind?: "file" | "directory" };
+
 export interface TicketSummary {
   id: string;
   status: TicketStatus;
@@ -16,6 +20,7 @@ export interface TicketSummary {
   created?: string;
   updated?: string;
   references: string[];
+  resolved_references: TicketReference[];
   has_conclusion: boolean;
   warnings: TicketWarning[];
 }

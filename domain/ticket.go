@@ -24,6 +24,25 @@ type TicketWarning struct {
 	Message string `json:"message"`
 }
 
+type TicketReferenceType string
+type PathReferenceKind string
+
+const (
+	TicketReferenceTicket  TicketReferenceType = "ticket"
+	TicketReferencePath    TicketReferenceType = "path"
+	PathReferenceFile      PathReferenceKind   = "file"
+	PathReferenceDirectory PathReferenceKind   = "directory"
+)
+
+// TicketReference is the daemon-resolved view of an entry in References.
+// Value remains the portable string serialized in ticket.md.
+type TicketReference struct {
+	Value  string              `json:"value"`
+	Type   TicketReferenceType `json:"type"`
+	Exists bool                `json:"exists"`
+	Kind   PathReferenceKind   `json:"kind,omitempty"`
+}
+
 type TicketSummary struct {
 	ID     string       `json:"id"`
 	Status TicketStatus `json:"status"`
@@ -31,12 +50,13 @@ type TicketSummary struct {
 	Repo   string       `json:"repo,omitempty"`
 	// AdditionalRepos are extra repositories in scope beyond the primary Repo.
 	// Order carries no meaning; keys must be unique and must not include Repo.
-	AdditionalRepos []string        `json:"additional_repos"`
-	Created         *time.Time      `json:"created,omitempty"`
-	Updated         *time.Time      `json:"updated,omitempty"`
-	References      []string        `json:"references"`
-	HasConclusion   bool            `json:"has_conclusion"`
-	Warnings        []TicketWarning `json:"warnings"`
+	AdditionalRepos    []string          `json:"additional_repos"`
+	Created            *time.Time        `json:"created,omitempty"`
+	Updated            *time.Time        `json:"updated,omitempty"`
+	References         []string          `json:"references"`
+	ResolvedReferences []TicketReference `json:"resolved_references"`
+	HasConclusion      bool              `json:"has_conclusion"`
+	Warnings           []TicketWarning   `json:"warnings"`
 }
 
 // TicketOutcome distinguishes how a ticket conclusion ended: shipped commits,
