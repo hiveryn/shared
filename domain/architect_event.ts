@@ -14,7 +14,9 @@ export const ARCHITECT_EVENT_TYPE = "workspace_changed";
  * terminal). It is the only signal that names a session id, and therefore the
  * only way a client can discover a session it did not create itself — an
  * architect MCP spawn, or a spawn from another window. `session_ended` announces
- * a session that is gone (concluded or discarded).
+ * a session that is gone (concluded or discarded). `roadmap_updated` announces a
+ * successful roadmap mutation (any architect MCP roadmap tool call, or a future
+ * desktop-originated write).
  */
 export type ArchitectEventReason =
   | "ticket_created"
@@ -23,7 +25,8 @@ export type ArchitectEventReason =
   | "ticket_deleted"
   | "ticket_concluded"
   | "session_started"
-  | "session_ended";
+  | "session_ended"
+  | "roadmap_updated";
 
 /**
  * Published per architect key and fanned out to every subscriber of that

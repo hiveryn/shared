@@ -28,6 +28,10 @@ const (
 	// discarded), so a client that missed the session-scoped lifecycle event can
 	// still drop it.
 	ArchitectEventSessionEnded ArchitectEventReason = "session_ended"
+	// ArchitectEventRoadmapUpdated announces a successful roadmap mutation
+	// (any architect MCP roadmap tool call, or a future desktop-originated
+	// write) so a client showing the roadmap can refetch it.
+	ArchitectEventRoadmapUpdated ArchitectEventReason = "roadmap_updated"
 )
 
 func (r ArchitectEventReason) Valid() bool {
@@ -38,7 +42,8 @@ func (r ArchitectEventReason) Valid() bool {
 		ArchitectEventTicketDeleted,
 		ArchitectEventTicketConcluded,
 		ArchitectEventSessionStarted,
-		ArchitectEventSessionEnded:
+		ArchitectEventSessionEnded,
+		ArchitectEventRoadmapUpdated:
 		return true
 	default:
 		return false
