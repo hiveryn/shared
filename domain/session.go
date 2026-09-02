@@ -222,10 +222,22 @@ type MoveTicketToDoneResult struct {
 }
 
 type TerminalInfo struct {
-	TerminalID string `json:"terminal_id"`
-	SessionID  string `json:"session_id"`
-	Command    string `json:"command"`
-	Status     string `json:"status"`
+	TerminalID         string `json:"terminal_id"`
+	SessionID          string `json:"session_id"`
+	Command            string `json:"command"`
+	Status             string `json:"status"`
+	WorkdirID          string `json:"workdir_id,omitempty"`
+	WorkdirTitle       string `json:"workdir_title,omitempty"`
+	WorkdirPath        string `json:"workdir_path,omitempty"`
+	WorkdirDisplayPath string `json:"workdir_display_path,omitempty"`
+}
+
+type TerminalWorkdir struct {
+	ID          string `json:"id"`
+	Title       string `json:"title"`
+	Path        string `json:"path"`
+	DisplayPath string `json:"display_path"`
+	Default     bool   `json:"default"`
 }
 
 type TerminalPlacement string
@@ -238,16 +250,21 @@ const (
 type CreateTerminalParams struct {
 	Placement TerminalPlacement `json:"placement"`
 	BaseTabID string            `json:"base_tab_id,omitempty"`
+	WorkdirID string            `json:"workdir_id"`
 }
 
 type SessionTab struct {
-	Type      string            `json:"type"`
-	ID        string            `json:"id,omitempty"`
-	Command   string            `json:"command,omitempty"`
-	Status    string            `json:"status,omitempty"`
-	Placement TerminalPlacement `json:"placement,omitempty"`
-	BaseTabID string            `json:"base_tab_id,omitempty"`
-	Target    string            `json:"target,omitempty"`
+	Type               string            `json:"type"`
+	ID                 string            `json:"id,omitempty"`
+	Command            string            `json:"command,omitempty"`
+	Status             string            `json:"status,omitempty"`
+	Placement          TerminalPlacement `json:"placement,omitempty"`
+	BaseTabID          string            `json:"base_tab_id,omitempty"`
+	Target             string            `json:"target,omitempty"`
+	WorkdirID          string            `json:"workdir_id,omitempty"`
+	WorkdirTitle       string            `json:"workdir_title,omitempty"`
+	WorkdirPath        string            `json:"workdir_path,omitempty"`
+	WorkdirDisplayPath string            `json:"workdir_display_path,omitempty"`
 }
 
 type PreviewBrowserTabParams struct {
