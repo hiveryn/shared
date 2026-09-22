@@ -13,14 +13,13 @@ import "time"
 type IntentType string
 
 const (
-	IntentTypeConcludeSession    IntentType = "concludeSession"
-	IntentTypeCreateWorkTicket   IntentType = "createWorkTicket"
-	IntentTypeSpawnTicketSession IntentType = "spawnTicketSession"
+	IntentTypeConcludeSession  IntentType = "concludeSession"
+	IntentTypeCreateWorkTicket IntentType = "createWorkTicket"
 )
 
 func (t IntentType) Valid() bool {
 	switch t {
-	case IntentTypeConcludeSession, IntentTypeCreateWorkTicket, IntentTypeSpawnTicketSession:
+	case IntentTypeConcludeSession, IntentTypeCreateWorkTicket:
 		return true
 	default:
 		return false

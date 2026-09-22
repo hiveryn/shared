@@ -21,8 +21,7 @@ const (
 	// ArchitectEventSessionStarted announces a session whose run is live: it has
 	// a running run and a main terminal. It is the only signal that names a
 	// session id, and therefore the only way a client can discover a session it
-	// did not create itself (an architect MCP spawn, or a spawn from another
-	// window).
+	// did not create itself (a spawn from another window).
 	ArchitectEventSessionStarted ArchitectEventReason = "session_started"
 	// ArchitectEventSessionEnded announces a session that is gone (concluded or
 	// discarded), so a client that missed the session-scoped lifecycle event can

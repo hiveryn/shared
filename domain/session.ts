@@ -3,7 +3,7 @@ import type { TicketOutcome } from "./ticket";
 
 export type SessionType = "architect" | "ticket" | "freeform";
 
-export type SessionCreatedBy = "desktop" | "architect_mcp";
+export type SessionCreatedBy = "desktop";
 
 export type SessionRunStatus = "running" | "completed" | "failed";
 
@@ -22,6 +22,15 @@ export interface AgentProfileSnapshot {
   env: Record<string, string>;
 }
 
+/**
+ * The durable spawn record. `prompt` is the fixed daemon-rendered kickoff and
+ * `instructions` the built-in role instructions, both resolved at create time.
+ * `workflows` is the explicit workflow selection of a ticket session: canonical
+ * absolute paths of files directly inside the architect workspace's
+ * `workflows/` directory, exactly as the launch request named them. It may be
+ * empty, is never inferred from repository membership, and is retained across
+ * runs and resumes; the files are read live by the worker, never copied.
+ */
 export interface Session {
   id: string;
   architect_key: string;
@@ -31,6 +40,7 @@ export interface Session {
   workdir: string;
   additional_repos: string[];
   additional_workdirs: string[];
+  workflows: string[];
   instructions?: string;
   created_by?: SessionCreatedBy;
   created_at: string;
@@ -74,6 +84,13 @@ export interface SessionEvent {
   at: string;
 }
 
+/**
+ * The desktop's launch contract. `workflows` is accepted for ticket sessions
+ * only: the explicit, user-confirmed selection of canonical workflow paths (as
+ * listed by `GET /api/architects/{key}/workflows`). Omitted or empty is a valid
+ * selection of nothing. Every entry is validated; an invalid one rejects the
+ * request instead of being dropped or substituted.
+ */
 export interface CreateSessionRequest {
   session_type: SessionType;
   architect_key: string;
@@ -81,6 +98,7 @@ export interface CreateSessionRequest {
   prompt?: string;
   workdir?: string;
   slug?: string;
+  workflows?: string[];
 }
 
 export interface CreateSessionParams {
@@ -90,6 +108,7 @@ export interface CreateSessionParams {
   context_id: string;
   prompt: string;
   workdir: string;
+  workflows: string[];
   instructions: string;
   created_by: SessionCreatedBy;
 }

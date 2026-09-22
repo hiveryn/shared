@@ -12,8 +12,8 @@ export const ARCHITECT_EVENT_TYPE = "workspace_changed";
  *
  * `session_started` announces a session whose run is live (running run + main
  * terminal). It is the only signal that names a session id, and therefore the
- * only way a client can discover a session it did not create itself — an
- * architect MCP spawn, or a spawn from another window. `session_ended` announces
+ * only way a client can discover a session it did not create itself (a spawn
+ * from another window). `session_ended` announces
  * a session that is gone (concluded or discarded).
  */
 export type ArchitectEventReason =

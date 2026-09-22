@@ -17,8 +17,7 @@ const (
 )
 
 const (
-	SessionCreatedByDesktop      SessionCreatedBy = "desktop"
-	SessionCreatedByArchitectMCP SessionCreatedBy = "architect_mcp"
+	SessionCreatedByDesktop SessionCreatedBy = "desktop"
 )
 
 const (
@@ -53,6 +52,14 @@ type AgentProfileSnapshot struct {
 	MCP   map[string]MCPServerSnapshot `json:"mcp,omitempty"`
 }
 
+// Session is the durable spawn record. Prompt is the fixed daemon-rendered
+// kickoff and Instructions the built-in role instructions, both resolved once
+// at create time. Workflows is the explicit workflow selection for a ticket
+// session: canonical absolute paths of files directly inside the architect
+// workspace's workflows/ directory, exactly as the launch request named them.
+// It may be empty, is never inferred from repository membership, and is
+// retained across runs and resumes; the files themselves are read live by the
+// worker and never copied.
 type Session struct {
 	ID                 string           `json:"id"`
 	ArchitectKey       string           `json:"architect_key"`
@@ -62,6 +69,7 @@ type Session struct {
 	Workdir            string           `json:"workdir"`
 	AdditionalRepos    []string         `json:"additional_repos"`
 	AdditionalWorkdirs []string         `json:"additional_workdirs"`
+	Workflows          []string         `json:"workflows"`
 	Instructions       string           `json:"instructions,omitempty"`
 	CreatedBy          SessionCreatedBy `json:"created_by,omitempty"`
 	CreatedAt          time.Time        `json:"created_at"`
@@ -105,6 +113,11 @@ type SessionEvent struct {
 	At                time.Time         `json:"at"`
 }
 
+// CreateSessionRequest is the desktop's launch contract. Workflows is accepted
+// for ticket sessions only: the explicit, user-confirmed selection of canonical
+// workflow paths (as listed by the architect's workflow endpoint). An omitted
+// or empty list is a valid selection of nothing. The daemon validates every
+// entry and rejects the request rather than dropping or substituting a path.
 type CreateSessionRequest struct {
 	SessionType  SessionType `json:"session_type"`
 	ArchitectKey string      `json:"architect_key"`
@@ -112,6 +125,7 @@ type CreateSessionRequest struct {
 	Prompt       string      `json:"prompt,omitempty"`
 	Workdir      string      `json:"workdir,omitempty"`
 	Slug         string      `json:"slug,omitempty"`
+	Workflows    []string    `json:"workflows,omitempty"`
 }
 
 type CreateSessionParams struct {
@@ -123,6 +137,7 @@ type CreateSessionParams struct {
 	Workdir            string
 	AdditionalRepos    []string
 	AdditionalWorkdirs []string
+	Workflows          []string
 	Instructions       string
 	CreatedBy          SessionCreatedBy
 }
