@@ -16,7 +16,7 @@ Shared domain types for the Hiveryn ecosystem.
 - Wire types used across API/MCP: `CreateSessionRequest`, `AppendSessionEventParams`, etc.
 - Stream contracts consumed by more than one repo: `ArchitectEvent` / `ArchitectEventReason` (the architect SSE stream — its `session_started` / `session_ended` reasons are the only place a session id is announced, so the desktop can discover sessions it did not create)
 - Session launch contract: `CreateSessionRequest.workflows` (explicit canonical workflow paths for a ticket session; empty is valid) and `Session.workflows` (the persisted selection, retained across runs and resumes).
-- Architect workspace read contracts: `WorkspaceReport` / `WorkspaceNode` / `WorkspaceEntry` / `WorkspaceDiagnostic` (the structural check of the file-based workspace), `ArtifactKind` / `ArtifactSchema` / `ArtifactField` (the artifact schemas), and `Workflow` / `WorkflowList` / `WorkflowAttach` (flat `workflows/*.md` discovery and repo applicability). The daemon produces them for both the architect MCP tools and the desktop, so they are shared rather than daemon-local.
+- Architect workspace read contracts: `WorkspaceReport` / `WorkspaceNode` / `WorkspaceEntry` / `WorkspaceDiagnostic` (the structural check of the file-based workspace), `ArtifactKind` / `ArtifactSchema` / `ArtifactField` (the artifact schemas), `Workflow` / `WorkflowList` / `WorkflowAttach` (flat `workflows/*.md` discovery and repo applicability), and `WorkerPreflight` (whether the workspace's required project context can host a worker right now — the launch's own validation, narrower than `WorkspaceReport.valid`). The daemon produces them for both the architect MCP tools and the desktop, so they are shared rather than daemon-local.
 
 ## What does NOT belong here
 

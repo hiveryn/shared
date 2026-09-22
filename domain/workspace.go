@@ -218,3 +218,27 @@ type ArtifactSchema struct {
 	Rules         []string        `json:"rules"`
 	Example       string          `json:"example"`
 }
+
+// WorkerPreflight answers one question before a ticket session is created: is
+// the architect workspace's required project context ready for a worker right
+// now? It runs the project-context half of the worker launch validation — the
+// same code the launch itself runs — and reports what would block it.
+//
+// It is deliberately not the workspace check's aggregate verdict: a worker is
+// blocked only by hiveryn.yaml, PROJECT_OVERVIEW.md, PROJECT_STATE.md and an
+// invalid-when-present ROADMAP_CURRENT.md. Architect-only artifacts, archived
+// roadmaps and unselected invalid workflows never block one, so a workspace
+// that the check calls invalid can still be launchable.
+//
+// Selected-workflow validity is not part of this answer: each workflow reports
+// its own validity and diagnostics in the workflow listing, and the launch
+// revalidates the whole selection against the live workspace regardless.
+//
+// Launchable is false exactly when Problems is non-empty; each problem is one
+// actionable finding, in the same wording the launch error would carry.
+type WorkerPreflight struct {
+	ArchitectKey string    `json:"architect_key"`
+	CheckedAt    time.Time `json:"checked_at"`
+	Launchable   bool      `json:"launchable"`
+	Problems     []string  `json:"problems"`
+}

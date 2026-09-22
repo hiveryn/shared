@@ -162,3 +162,29 @@ export interface ArtifactSchema {
   rules: string[];
   example: string;
 }
+
+/**
+ * The answer to one question asked before a ticket session is created: is the
+ * architect workspace's required project context ready for a worker right now?
+ * It runs the project-context half of the worker launch validation — the same
+ * code the launch itself runs — and reports what would block it.
+ *
+ * It is deliberately not `WorkspaceReport.valid`: a worker is blocked only by
+ * `hiveryn.yaml`, `PROJECT_OVERVIEW.md`, `PROJECT_STATE.md` and an
+ * invalid-when-present `ROADMAP_CURRENT.md`. Architect-only artifacts, archived
+ * roadmaps and unselected invalid workflows never block one, so a workspace the
+ * check calls invalid can still be launchable.
+ *
+ * Selected-workflow validity is not part of this answer: each workflow reports
+ * its own validity and diagnostics in the workflow listing, and the launch
+ * revalidates the whole selection against the live workspace regardless.
+ *
+ * `launchable` is false exactly when `problems` is non-empty; each problem is
+ * one actionable finding, worded as the launch error would word it.
+ */
+export interface WorkerPreflight {
+  architect_key: string;
+  checked_at: string;
+  launchable: boolean;
+  problems: string[];
+}
