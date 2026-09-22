@@ -4,3 +4,5 @@ export * from "./commit";
 export * from "./intent";
 export * from "./session";
 export * from "./ticket";
+export * from "./workflow";
+export * from "./workspace";
