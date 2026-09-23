@@ -1,7 +1,7 @@
 import type { CommitRef } from "./commit";
 import type { TicketOutcome } from "./ticket";
 
-export type SessionType = "architect" | "ticket" | "freeform";
+export type SessionType = "architect" | "ticket";
 
 export type SessionCreatedBy = "desktop";
 
@@ -95,9 +95,6 @@ export interface CreateSessionRequest {
   session_type: SessionType;
   architect_key: string;
   ticket_id?: string;
-  prompt?: string;
-  workdir?: string;
-  slug?: string;
   workflows?: string[];
 }
 

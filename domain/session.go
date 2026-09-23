@@ -13,7 +13,6 @@ type SessionRunFailureReason string
 const (
 	SessionTypeArchitect SessionType = "architect"
 	SessionTypeTicket    SessionType = "ticket"
-	SessionTypeFreeform  SessionType = "freeform"
 )
 
 const (
@@ -122,9 +121,6 @@ type CreateSessionRequest struct {
 	SessionType  SessionType `json:"session_type"`
 	ArchitectKey string      `json:"architect_key"`
 	TicketID     string      `json:"ticket_id,omitempty"`
-	Prompt       string      `json:"prompt,omitempty"`
-	Workdir      string      `json:"workdir,omitempty"`
-	Slug         string      `json:"slug,omitempty"`
 	Workflows    []string    `json:"workflows,omitempty"`
 }
 
@@ -202,20 +198,18 @@ type ConcludeSessionParams struct {
 	// Structured body fields (rendered into markdown sections). Which fields
 	// are populated/required depends on the session type; see the per-type
 	// render functions in the daemon.
-	Summary         string // all types (required)
-	Narrative       string // architect (required)
-	Implementation  string // ticket (required unless rejected)
-	Findings        string // freeform (required)
-	Verification    string // ticket (optional)
-	TicketsTouched  string // architect (optional, Markdown)
-	Decisions       string // architect (optional, Markdown)
-	ConfigChanges   string // architect (optional, Markdown)
-	UserPriorities  string // architect (optional, Markdown)
-	Deviations      string // ticket (optional, Markdown)
-	FollowUps       string // ticket (optional, Markdown)
-	Recommendations string // freeform (required, Markdown)
-	OpenQuestions   string // all types; required for freeform, optional otherwise (Markdown)
-	NextSteps       string // architect (required, Markdown)
+	Summary        string // all types (required)
+	Narrative      string // architect (required)
+	Implementation string // ticket (required unless rejected)
+	Verification   string // ticket (optional)
+	TicketsTouched string // architect (optional, Markdown)
+	Decisions      string // architect (optional, Markdown)
+	ConfigChanges  string // architect (optional, Markdown)
+	UserPriorities string // architect (optional, Markdown)
+	Deviations     string // ticket (optional, Markdown)
+	FollowUps      string // ticket (optional, Markdown)
+	OpenQuestions  string // architect and ticket (optional, Markdown)
+	NextSteps      string // architect (required, Markdown)
 }
 
 type ConcludeSessionResult struct {
