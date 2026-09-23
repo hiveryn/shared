@@ -11,7 +11,6 @@ const (
 	ArtifactProjectOverview ArtifactKind = "PROJECT_OVERVIEW"
 	ArtifactProjectState    ArtifactKind = "PROJECT_STATE"
 	ArtifactRoadmapCurrent  ArtifactKind = "ROADMAP_CURRENT"
-	ArtifactRoadmapArchive  ArtifactKind = "ROADMAP_ARCHIVE"
 	ArtifactArchitectSystem ArtifactKind = "ARCHITECT_SYSTEM"
 	ArtifactWorkflow        ArtifactKind = "WORKFLOW"
 	ArtifactHiverynYAML     ArtifactKind = "HIVERYN_YAML"
@@ -20,7 +19,7 @@ const (
 func (k ArtifactKind) Valid() bool {
 	switch k {
 	case ArtifactProjectOverview, ArtifactProjectState, ArtifactRoadmapCurrent,
-		ArtifactRoadmapArchive, ArtifactArchitectSystem, ArtifactWorkflow, ArtifactHiverynYAML:
+		ArtifactArchitectSystem, ArtifactWorkflow, ArtifactHiverynYAML:
 		return true
 	default:
 		return false
@@ -35,7 +34,6 @@ func ArtifactKinds() []ArtifactKind {
 		ArtifactProjectOverview,
 		ArtifactProjectState,
 		ArtifactRoadmapCurrent,
-		ArtifactRoadmapArchive,
 		ArtifactArchitectSystem,
 		ArtifactWorkflow,
 	}
@@ -67,8 +65,6 @@ const (
 	DiagMissingField             = "MISSING_FIELD"
 	DiagInvalidTimestamp         = "INVALID_TIMESTAMP"
 	DiagUnexpectedField          = "UNEXPECTED_FIELD"
-	DiagArchiveNameInvalid       = "ARCHIVE_NAME_INVALID"
-	DiagArchiveDateMismatch      = "ARCHIVE_DATE_MISMATCH"
 	DiagWorkflowSubdirectory     = "WORKFLOW_SUBDIRECTORY"
 	DiagWorkflowInvalidAttach    = "WORKFLOW_INVALID_ATTACH"
 	DiagWorkflowMissingRepos     = "WORKFLOW_MISSING_REPOS"
@@ -101,12 +97,12 @@ const (
 )
 
 // WorkspaceNode is one entry of the workspace's expected shape: a root document,
-// the config, or one of the two directories. Expected nodes are always present
+// the config, or the workflows directory. Expected nodes are always present
 // in the report even when the file is missing, so a broken workspace stays
 // inspectable and repairable.
 //
 // DocumentUpdatedAt is the timestamp the document itself declares
-// (lastUpdatedAt / archivedAt); ModifiedAt is the filesystem mtime. They are
+// (lastUpdatedAt); ModifiedAt is the filesystem mtime. They are
 // reported separately and neither certifies factual freshness.
 type WorkspaceNode struct {
 	Kind              ArtifactKind          `json:"kind"`
@@ -121,17 +117,16 @@ type WorkspaceNode struct {
 	Diagnostics       []WorkspaceDiagnostic `json:"diagnostics"`
 }
 
-// WorkspaceEntry is one file discovered inside a directory node — a workflow or
-// an archived roadmap.
+// WorkspaceEntry is one workflow file discovered inside the workflows directory
+// node.
 //
 // It has no children of its own, and that is a property of the workspace rather
-// than a simplification: both directories are flat by rule, so a subdirectory
-// inside them is reported as an error on the directory and never descended
-// into. Keeping the distinction in the types also keeps the report
+// than a simplification: workflows/ is flat by rule, so a subdirectory inside it
+// is reported as an error on the directory and never descended into. Keeping the distinction in the types also keeps the report
 // non-recursive, which the MCP tool schema requires.
 //
 // It carries no Exists or Required: a discovered file exists by definition, and
-// no individual workflow or archive is required.
+// no individual workflow is required.
 type WorkspaceEntry struct {
 	Kind              ArtifactKind          `json:"kind"`
 	Path              string                `json:"path"`
@@ -226,8 +221,8 @@ type ArtifactSchema struct {
 //
 // It is deliberately not the workspace check's aggregate verdict: a worker is
 // blocked only by hiveryn.yaml, PROJECT_OVERVIEW.md, PROJECT_STATE.md and an
-// invalid-when-present ROADMAP_CURRENT.md. Architect-only artifacts, archived
-// roadmaps and unselected invalid workflows never block one, so a workspace
+// invalid-when-present ROADMAP_CURRENT.md. Architect-only artifacts and
+// unselected invalid workflows never block one, so a workspace
 // that the check calls invalid can still be launchable.
 //
 // Selected-workflow validity is not part of this answer: each workflow reports

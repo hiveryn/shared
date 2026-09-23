@@ -7,7 +7,6 @@ export type ArtifactKind =
   | "PROJECT_OVERVIEW"
   | "PROJECT_STATE"
   | "ROADMAP_CURRENT"
-  | "ROADMAP_ARCHIVE"
   | "ARCHITECT_SYSTEM"
   | "WORKFLOW"
   | "HIVERYN_YAML";
@@ -18,7 +17,6 @@ export const ARTIFACT_KINDS: readonly ArtifactKind[] = [
   "PROJECT_OVERVIEW",
   "PROJECT_STATE",
   "ROADMAP_CURRENT",
-  "ROADMAP_ARCHIVE",
   "ARCHITECT_SYSTEM",
   "WORKFLOW",
 ];
@@ -46,12 +44,12 @@ export type WorkspaceNodeType = "file" | "directory";
 
 /**
  * One entry of the workspace's expected shape: a root document, the config, or
- * one of the two directories. Expected nodes are always present in the report
+ * the workflows directory. Expected nodes are always present in the report
  * even when the file is missing, so a broken workspace stays inspectable and
  * repairable.
  *
  * `document_updated_at` is the timestamp the document itself declares
- * (lastUpdatedAt / archivedAt); `modified_at` is the filesystem mtime. They are
+ * (lastUpdatedAt); `modified_at` is the filesystem mtime. They are
  * reported separately and neither certifies factual freshness.
  */
 export interface WorkspaceNode {
@@ -68,16 +66,14 @@ export interface WorkspaceNode {
 }
 
 /**
- * One file discovered inside a directory node — a workflow or an archived
- * roadmap.
+ * One workflow file discovered inside the workflows directory node.
  *
  * It has no children of its own, and that is a property of the workspace rather
- * than a simplification: both directories are flat by rule, so a subdirectory
- * inside them is reported as an error on the directory and never descended
- * into.
+ * than a simplification: workflows/ is flat by rule, so a subdirectory inside it
+ * is reported as an error on the directory and never descended into.
  *
  * It carries no `exists` or `required`: a discovered file exists by definition,
- * and no individual workflow or archive is required.
+ * and no individual workflow is required.
  */
 export interface WorkspaceEntry {
   kind: ArtifactKind;
@@ -171,8 +167,8 @@ export interface ArtifactSchema {
  *
  * It is deliberately not `WorkspaceReport.valid`: a worker is blocked only by
  * `hiveryn.yaml`, `PROJECT_OVERVIEW.md`, `PROJECT_STATE.md` and an
- * invalid-when-present `ROADMAP_CURRENT.md`. Architect-only artifacts, archived
- * roadmaps and unselected invalid workflows never block one, so a workspace the
+ * invalid-when-present `ROADMAP_CURRENT.md`. Architect-only artifacts and
+ * unselected invalid workflows never block one, so a workspace the
  * check calls invalid can still be launchable.
  *
  * Selected-workflow validity is not part of this answer: each workflow reports
