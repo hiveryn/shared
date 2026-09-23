@@ -275,22 +275,10 @@ type SessionTab struct {
 	Status             string            `json:"status,omitempty"`
 	Placement          TerminalPlacement `json:"placement,omitempty"`
 	BaseTabID          string            `json:"base_tab_id,omitempty"`
-	Target             string            `json:"target,omitempty"`
 	WorkdirID          string            `json:"workdir_id,omitempty"`
 	WorkdirTitle       string            `json:"workdir_title,omitempty"`
 	WorkdirPath        string            `json:"workdir_path,omitempty"`
 	WorkdirDisplayPath string            `json:"workdir_display_path,omitempty"`
-}
-
-type PreviewBrowserTabParams struct {
-	Target string `json:"target"`
-	TabID  string `json:"tab_id,omitempty"`
-}
-
-type BrowserTabInfo struct {
-	TabID     string `json:"tab_id"`
-	SessionID string `json:"session_id"`
-	Target    string `json:"target"`
 }
 
 type ArchitectConclusion struct {

@@ -200,22 +200,10 @@ export interface SessionTab {
   status?: string;
   placement?: TerminalPlacement;
   base_tab_id?: string;
-  target?: string;
   workdir_id?: string;
   workdir_title?: string;
   workdir_path?: string;
   workdir_display_path?: string;
-}
-
-export interface PreviewBrowserTabParams {
-  target: string;
-  tab_id?: string;
-}
-
-export interface BrowserTabInfo {
-  tab_id: string;
-  session_id: string;
-  target: string;
 }
 
 export interface ArchitectConclusion {
