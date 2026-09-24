@@ -107,13 +107,90 @@ type IntentOrigin struct {
 
 // Intent is the desktop-facing description of a pending, approvable tool call.
 // Payload is tool-specific and rendered generically by the desktop.
+//
+// Inputs, when present, are fields the user completes as part of approving; the
+// approved values reach the operation. UnresolvedInputs lists the inputs whose
+// defaults cannot satisfy the schema: while it is non-empty the daemon never
+// approves automatically, and the intent waits for the user to complete it.
 type Intent struct {
-	ID          string         `json:"intent_id"`
-	Type        IntentType     `json:"intent_type"`
-	Summary     string         `json:"summary"`
-	Payload     map[string]any `json:"payload,omitempty"`
-	Origin      IntentOrigin   `json:"origin"`
-	WaitSeconds int            `json:"wait_seconds"`
-	Policy      IntentPolicy   `json:"policy"`
-	CreatedAt   time.Time      `json:"created_at"`
+	ID               string             `json:"intent_id"`
+	Type             IntentType         `json:"intent_type"`
+	Summary          string             `json:"summary"`
+	Payload          map[string]any     `json:"payload,omitempty"`
+	Inputs           []IntentInputField `json:"inputs,omitempty"`
+	UnresolvedInputs []IntentInputIssue `json:"unresolved_inputs,omitempty"`
+	Origin           IntentOrigin       `json:"origin"`
+	WaitSeconds      int                `json:"wait_seconds"`
+	Policy           IntentPolicy       `json:"policy"`
+	CreatedAt        time.Time          `json:"created_at"`
+}
+
+// IntentInputType is the closed set of approval input kinds. The schema is
+// deliberately small — ordinary form fields plus a required choice from
+// supplied options — not a general form engine.
+//
+// Value types: text, textarea and choice carry a string; boolean carries a bool.
+type IntentInputType string
+
+const (
+	// IntentInputText: a single-line string.
+	IntentInputText IntentInputType = "text"
+	// IntentInputTextarea: a multi-line string.
+	IntentInputTextarea IntentInputType = "textarea"
+	// IntentInputChoice: one Value from Options.
+	IntentInputChoice IntentInputType = "choice"
+	// IntentInputBoolean: true or false.
+	IntentInputBoolean IntentInputType = "boolean"
+)
+
+func (t IntentInputType) Valid() bool {
+	switch t {
+	case IntentInputText, IntentInputTextarea, IntentInputChoice, IntentInputBoolean:
+		return true
+	default:
+		return false
+	}
+}
+
+// Bounds on a schema, so a pending approval stays a short form.
+const (
+	MaxIntentInputFields  = 16
+	MaxIntentInputOptions = 200
+)
+
+// IntentInputOption is one allowed value of a choice input.
+type IntentInputOption struct {
+	Value       string `json:"value"`
+	Label       string `json:"label,omitempty"` // display text; Value when empty
+	Description string `json:"description,omitempty"`
+}
+
+// IntentInputField is one approval input. Default, when set, has the field's
+// value type and is what automatic approval uses; a default is validated
+// exactly like user input, so a stale one is reported, never applied.
+// MaxLength (in characters) applies to text and textarea only; 0 is unbounded.
+type IntentInputField struct {
+	Name        string              `json:"name"`
+	Label       string              `json:"label"`
+	Description string              `json:"description,omitempty"`
+	Type        IntentInputType     `json:"type"`
+	Required    bool                `json:"required,omitempty"`
+	Default     any                 `json:"default,omitempty"`
+	Options     []IntentInputOption `json:"options,omitempty"`
+	MaxLength   int                 `json:"max_length,omitempty"`
+}
+
+// IntentInputValues are submitted or resolved input values keyed by field name.
+type IntentInputValues map[string]any
+
+// IntentInputIssue is one problem with an input value, keyed by field name.
+type IntentInputIssue struct {
+	Field   string `json:"field"`
+	Message string `json:"message"`
+}
+
+// ApproveIntentRequest is the desktop's approve body. Inputs may be omitted
+// when the intent has none; a missing value falls back to the field default.
+type ApproveIntentRequest struct {
+	Inputs IntentInputValues `json:"inputs,omitempty"`
 }
