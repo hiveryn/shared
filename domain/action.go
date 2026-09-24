@@ -120,6 +120,11 @@ type ActionRun struct {
 	ArchitectKey       string `json:"architect_key,omitempty"`
 	RequesterSessionID string `json:"requester_session_id,omitempty"`
 	Reason             string `json:"reason,omitempty"`
+
+	// Attention is live, not part of the durable record: the agent's attention
+	// while the execution runs, attached by the daemon when it serves a
+	// running execution and absent otherwise.
+	Attention *ActionAgentAttention `json:"attention,omitempty"`
 }
 
 // LaunchActionRequest is the desktop's manual launch: the caller's prompt and
@@ -192,6 +197,50 @@ type ActionAgentActivity struct {
 	Status    string `json:"status,omitempty"`
 }
 
+// ActionAttentionState says whether the Action agent is known to be waiting
+// for the user at its terminal.
+type ActionAttentionState string
+
+const (
+	// ActionAttentionInputRequired: an explicit provider signal — a hook
+	// reporting a permission or question prompt, or a provider prompt
+	// recognized on the agent's terminal screen — says the agent is waiting
+	// for the user.
+	ActionAttentionInputRequired ActionAttentionState = "input_required"
+	// ActionAttentionNoneDetected: no such signal is present. This does not
+	// prove the agent is not waiting: detection covers only known prompts.
+	ActionAttentionNoneDetected ActionAttentionState = "none_detected"
+	// ActionAttentionUnavailable: nothing can be inspected — the execution is
+	// not running, or its agent terminal is not live.
+	ActionAttentionUnavailable ActionAttentionState = "unavailable"
+)
+
+// ActionAttentionSource is where an input_required signal came from.
+type ActionAttentionSource string
+
+const (
+	ActionAttentionSourceHook     ActionAttentionSource = "hook"
+	ActionAttentionSourceTerminal ActionAttentionSource = "terminal"
+)
+
+// ActionAgentAttention reports whether the Action agent needs the user. It is
+// separate from the execution status, which stays running, and from Activity:
+// an idle or silent agent is never reported input_required. Reason is a
+// stable code (a provider prompt such as folder_trust, or awaiting_input for a
+// hook-reported prompt), Message says what the agent is asking and Since when
+// it was first detected. Coverage states what the provider's detection can
+// and cannot see, so none_detected is never read as "not waiting"; the
+// execution's terminal, in the Actions window, is where the user checks and
+// answers.
+type ActionAgentAttention struct {
+	State    ActionAttentionState  `json:"state"`
+	Reason   string                `json:"reason,omitempty"`
+	Message  string                `json:"message,omitempty"`
+	Source   ActionAttentionSource `json:"source,omitempty"`
+	Since    *time.Time            `json:"since,omitempty"`
+	Coverage string                `json:"coverage,omitempty"`
+}
+
 // ActionResult is an architect's view of one requested execution, addressed by
 // the execution id executeAction returned. The execution record is
 // authoritative: pending_approval means nothing has started (StartedAt unset),
@@ -201,20 +250,21 @@ type ActionAgentActivity struct {
 // failed without or before an agent conclusion, Summary the agent's
 // conclusion; OutputDir is set once the execution started.
 type ActionResult struct {
-	ExecutionID    string              `json:"execution_id"`
-	Action         string              `json:"action"`
-	Status         ActionRunStatus     `json:"status"`
-	Prompt         string              `json:"prompt"`
-	ProfileName    string              `json:"profile_name,omitempty"`
-	RequestedAt    time.Time           `json:"requested_at"`
-	StartedAt      *time.Time          `json:"started_at,omitempty"`
-	EndedAt        *time.Time          `json:"ended_at,omitempty"`
-	ElapsedSeconds *int64              `json:"elapsed_seconds,omitempty"`
-	Reason         string              `json:"reason,omitempty"`
-	Error          string              `json:"error,omitempty"`
-	Summary        string              `json:"summary,omitempty"`
-	OutputDir      string              `json:"output_dir,omitempty"`
-	Activity       ActionAgentActivity `json:"activity"`
+	ExecutionID    string               `json:"execution_id"`
+	Action         string               `json:"action"`
+	Status         ActionRunStatus      `json:"status"`
+	Prompt         string               `json:"prompt"`
+	ProfileName    string               `json:"profile_name,omitempty"`
+	RequestedAt    time.Time            `json:"requested_at"`
+	StartedAt      *time.Time           `json:"started_at,omitempty"`
+	EndedAt        *time.Time           `json:"ended_at,omitempty"`
+	ElapsedSeconds *int64               `json:"elapsed_seconds,omitempty"`
+	Reason         string               `json:"reason,omitempty"`
+	Error          string               `json:"error,omitempty"`
+	Summary        string               `json:"summary,omitempty"`
+	OutputDir      string               `json:"output_dir,omitempty"`
+	Activity       ActionAgentActivity  `json:"activity"`
+	Attention      ActionAgentAttention `json:"attention"`
 }
 
 // MaxActionWaitSeconds caps one waitForActionResult call; a caller that needs
@@ -222,7 +272,10 @@ type ActionResult struct {
 const MaxActionWaitSeconds = 30
 
 // ActionWaitResult is one bounded wait: the result at return, and whether the
-// wait ended on a status change (Changed) or at its timeout (TimedOut). An
+// wait ended on a change (Changed) or at its timeout (TimedOut). A change is
+// a status change or an attention change — input_required appearing, clearing
+// or changing reason — measured against the result when the wait began, so a
+// repeated wait on an unchanged condition blocks until its timeout. An
 // already-final execution returns at once with neither set.
 type ActionWaitResult struct {
 	Result   ActionResult `json:"result"`
@@ -235,8 +288,9 @@ type ActionWaitResult struct {
 const ActionEventType = "action_changed"
 
 // ActionEvent announces that an execution changed status: it was requested
-// (pending_approval), started (running) or ended (denied, completed, failed). The stream has no backlog, so a
-// client reconciles by refetching executions on (re)connect.
+// (pending_approval), started (running) or ended (denied, completed, failed),
+// or, while running, that its agent's attention changed. The stream has no
+// backlog, so a client reconciles by refetching executions on (re)connect.
 type ActionEvent struct {
 	Type        string          `json:"type"`
 	Action      string          `json:"action"`

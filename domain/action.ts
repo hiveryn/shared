@@ -66,6 +66,8 @@ export interface ActionRun {
   architect_key?: string;
   requester_session_id?: string;
   reason?: string;
+  /** Live, not durable: the agent's attention, present only while running. */
+  attention?: ActionAgentAttention;
 }
 
 export interface LaunchActionRequest {
@@ -113,6 +115,27 @@ export interface ActionAgentActivity {
   status?: string;
 }
 
+/**
+ * `input_required`: an explicit provider signal (hook or a recognized prompt
+ * on the terminal screen) says the agent waits for the user.
+ * `none_detected`: no signal — not proof the agent is not waiting.
+ * `unavailable`: not running, or its terminal is not live.
+ */
+export type ActionAttentionState = "input_required" | "none_detected" | "unavailable";
+
+export type ActionAttentionSource = "hook" | "terminal";
+
+/** Separate from status and activity. See action.go. */
+export interface ActionAgentAttention {
+  state: ActionAttentionState;
+  reason?: string;
+  message?: string;
+  source?: ActionAttentionSource;
+  since?: string;
+  /** What the provider's detection can and cannot see. */
+  coverage?: string;
+}
+
 /** An architect's view of one requested execution. See action.go. */
 export interface ActionResult {
   execution_id: string;
@@ -129,6 +152,7 @@ export interface ActionResult {
   summary?: string;
   output_dir?: string;
   activity: ActionAgentActivity;
+  attention: ActionAgentAttention;
 }
 
 export const MAX_ACTION_WAIT_SECONDS = 30;
@@ -141,7 +165,7 @@ export interface ActionWaitResult {
 
 export const ACTION_EVENT_TYPE = "action_changed";
 
-/** An execution was requested, started or ended. No backlog: refetch executions on (re)connect. */
+/** An execution was requested, started or ended, or its running agent's attention changed. No backlog: refetch executions on (re)connect. */
 export interface ActionEvent {
   type: typeof ACTION_EVENT_TYPE;
   action: string;
