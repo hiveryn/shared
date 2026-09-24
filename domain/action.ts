@@ -8,6 +8,9 @@ import type { Session } from "./session";
  * execution of an action runs at a time, globally. See action.go.
  */
 
+/** Mirrors `ValidActionName` in action.go. */
+export const ACTION_NAME_PATTERN = /^[a-z0-9][a-z0-9._-]{0,63}$/;
+
 export interface ActionProblem {
   path: string;
   message: string;
@@ -29,8 +32,9 @@ export interface ActionList {
 }
 
 /**
- * Manual launches start `running` and end `completed` or `failed`.
- * `pending_approval` and `denied` are reserved for approval-gated launches.
+ * Manual launches start `running` and end `completed` or `failed`. An
+ * architect's request starts `pending_approval` and moves to `denied`,
+ * `failed` (could not start or was abandoned) or `running` once approved.
  * `completed` means the artifact package was delivered (it may still report
  * findings); `failed` means the action could not be executed or delivered.
  */
@@ -41,7 +45,7 @@ export type ActionRunStatus =
   | "completed"
   | "failed";
 
-export type ActionRunTrigger = "manual";
+export type ActionRunTrigger = "manual" | "architect";
 
 export interface ActionRun {
   id: string;
@@ -58,6 +62,10 @@ export interface ActionRun {
   created_at: string;
   started_at?: string;
   ended_at?: string;
+  /** Architect requests only: who may read the result, who asked, why it was denied. */
+  architect_key?: string;
+  requester_session_id?: string;
+  reason?: string;
 }
 
 export interface LaunchActionRequest {
@@ -89,9 +97,51 @@ export interface ActionConclusion {
   ended_at?: string;
 }
 
+export interface ExecuteActionRequest {
+  name: string;
+  prompt: string;
+}
+
+/** The Actions an architect may request, in hiveryn.yaml `availableActions` order. */
+export interface AvailableActionList {
+  actions: ActionDefinition[];
+}
+
+/** `available: false` means nothing is known; `status` is then absent, not guessed. */
+export interface ActionAgentActivity {
+  available: boolean;
+  status?: string;
+}
+
+/** An architect's view of one requested execution. See action.go. */
+export interface ActionResult {
+  execution_id: string;
+  action: string;
+  status: ActionRunStatus;
+  prompt: string;
+  profile_name?: string;
+  requested_at: string;
+  started_at?: string;
+  ended_at?: string;
+  elapsed_seconds?: number;
+  reason?: string;
+  error?: string;
+  summary?: string;
+  output_dir?: string;
+  activity: ActionAgentActivity;
+}
+
+export const MAX_ACTION_WAIT_SECONDS = 30;
+
+export interface ActionWaitResult {
+  result: ActionResult;
+  changed: boolean;
+  timed_out: boolean;
+}
+
 export const ACTION_EVENT_TYPE = "action_changed";
 
-/** An execution started or ended. No backlog: refetch executions on (re)connect. */
+/** An execution was requested, started or ended. No backlog: refetch executions on (re)connect. */
 export interface ActionEvent {
   type: typeof ACTION_EVENT_TYPE;
   action: string;

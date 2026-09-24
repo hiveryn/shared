@@ -22,11 +22,14 @@ type IntentType string
 const (
 	IntentTypeConcludeSession  IntentType = "concludeSession"
 	IntentTypeCreateWorkTicket IntentType = "createWorkTicket"
+	// IntentTypeExecuteAction is an architect's request to run an Action. It is
+	// deferred: the intent id is also the Action execution id.
+	IntentTypeExecuteAction IntentType = "executeAction"
 )
 
 func (t IntentType) Valid() bool {
 	switch t {
-	case IntentTypeConcludeSession, IntentTypeCreateWorkTicket:
+	case IntentTypeConcludeSession, IntentTypeCreateWorkTicket, IntentTypeExecuteAction:
 		return true
 	default:
 		return false
