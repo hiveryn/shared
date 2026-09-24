@@ -1,10 +1,13 @@
 import type { SessionType } from "./session";
 
 /**
- * An Intent is a pending agent tool call awaiting the user's approval. The
- * agent's MCP call blocks in the daemon while the intent is pending; the
- * desktop renders it as a popup and approves or denies it. If nobody answers
- * within the wait window, the tool's hardcoded policy resolves it.
+ * An Intent is a pending agent tool call awaiting the user's approval; the
+ * desktop renders it as a popup and approves or denies it. It is either
+ * blocking — the agent's call waits and, if nobody answers within the wait
+ * window, the tool's policy resolves it — or deferred (policy `manual`): the
+ * request returns at once with a stable id, only the user resolves it, and its
+ * outcome is a `DeferredIntent` retrieved by that id. Every intent that asks for
+ * approval inputs is deferred.
  *
  * Distinct from Session (the spawn record): a Session is "run an agent", an
  * Intent is "the agent wants to do something first".
@@ -22,8 +25,11 @@ export type IntentOutcome =
   | "auto_denied"
   | "error";
 
-/** The tool's hardcoded behavior when the wait window expires. */
-export type IntentPolicy = "auto-allow" | "wait-then-allow" | "wait-then-deny";
+/**
+ * The tool's hardcoded behavior when the wait window expires. `manual` is
+ * deferred: there is no window, and nothing resolves it but the user.
+ */
+export type IntentPolicy = "auto-allow" | "wait-then-allow" | "wait-then-deny" | "manual";
 
 /**
  * Where an intent came from. Lets the UI render one popup for any tool across
@@ -39,10 +45,8 @@ export interface IntentOrigin {
 /**
  * The desktop-facing description of a pending, approvable tool call.
  *
- * `inputs`, when present, are fields the user completes as part of approving.
- * `unresolved_inputs` lists inputs whose defaults cannot satisfy the schema:
- * while it is non-empty the daemon never approves automatically and the intent
- * waits for the user.
+ * `inputs`, when present, are fields the user completes as part of approving;
+ * such an intent is always deferred. `wait_seconds` is 0 for a deferred intent.
  */
 export interface Intent {
   intent_id: string;
@@ -50,7 +54,6 @@ export interface Intent {
   summary: string;
   payload?: Record<string, unknown>;
   inputs?: IntentInputField[];
-  unresolved_inputs?: IntentInputIssue[];
   origin: IntentOrigin;
   wait_seconds: number;
   policy: IntentPolicy;
@@ -75,8 +78,8 @@ export interface IntentInputOption {
 }
 
 /**
- * One approval input. `default` has the field's value type and is what
- * automatic approval uses; the daemon validates it like user input.
+ * One approval input. `default` has the field's value type and only prefills
+ * the form: the daemon never approves with it or fills a missing value from it.
  * `max_length` (characters) applies to text and textarea only.
  */
 export interface IntentInputField {
@@ -101,7 +104,44 @@ export interface IntentInputIssue {
   message: string;
 }
 
-/** The desktop's approve body. A missing value falls back to the default. */
+/** The desktop's approve body. Values are taken as submitted; no defaults apply. */
 export interface ApproveIntentRequest {
   inputs?: IntentInputValues;
+}
+
+/**
+ * Lifecycle of a deferred intent. Approval and execution are separate facts:
+ * `running` means approved and started; only `completed` means it succeeded.
+ * `failed` with no `approved_at` never ran; with `approved_at` it started and
+ * may or may not have taken effect.
+ */
+export type DeferredIntentStatus =
+  | "pending_approval"
+  | "denied"
+  | "running"
+  | "completed"
+  | "failed";
+
+/**
+ * The durable, id-addressable outcome of a deferred intent: returned
+ * immediately on request (`pending_approval`) and by a lookup by id afterwards,
+ * including after its session ended. Scoped to its origin session.
+ */
+export interface DeferredIntent {
+  intent_id: string;
+  intent_type: IntentType;
+  summary: string;
+  payload?: Record<string, unknown>;
+  origin: IntentOrigin;
+  status: DeferredIntentStatus;
+  /** The validated values the operation ran with, once approved. */
+  inputs?: IntentInputValues;
+  result?: unknown;
+  /** The user's denial reason. */
+  reason?: string;
+  /** Why it failed. */
+  error?: string;
+  created_at: string;
+  approved_at?: string;
+  ended_at?: string;
 }
