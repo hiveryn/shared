@@ -13,6 +13,9 @@ type SessionRunFailureReason string
 const (
 	SessionTypeArchitect SessionType = "architect"
 	SessionTypeTicket    SessionType = "ticket"
+	// SessionTypeAction runs one Action execution. It belongs to no architect:
+	// ArchitectKey is empty and ContextID is the action execution id.
+	SessionTypeAction SessionType = "action"
 )
 
 const (

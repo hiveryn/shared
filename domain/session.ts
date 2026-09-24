@@ -1,7 +1,8 @@
 import type { CommitRef } from "./commit";
 import type { TicketOutcome } from "./ticket";
 
-export type SessionType = "architect" | "ticket";
+/** `action` sessions run one Action execution: `architect_key` is empty and `context_id` is the execution id. */
+export type SessionType = "architect" | "ticket" | "action";
 
 export type SessionCreatedBy = "desktop";
 
