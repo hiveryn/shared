@@ -9,10 +9,12 @@ import (
 // Each lives in its own Git repository at HIVERYN_HOME/actions/<name>/ and is
 // defined by two files the daemon reads live:
 //
-//   - action.yaml: exactly the keys name (equal to the directory name),
-//     description (what the action does and what the caller's prompt must
-//     contain) and artifacts (the textual contract of the delivered package,
-//     including a schema summary where useful).
+//   - action.yaml: the keys name (equal to the directory name), description
+//     (what the action does and what the caller's prompt must contain) and
+//     artifacts (the textual contract of the delivered package, including a
+//     schema summary where useful), plus the optional suggestions: a list of
+//     ready-made prompts offered in the manual launch form. No other key is
+//     allowed.
 //   - KICKOFF.md: the launch instructions, containing the placeholders
 //     {{prompt}} and {{output_dir}} exactly once or more each; no other
 //     {{...}} placeholder is allowed.
@@ -24,6 +26,13 @@ import (
 // actionNamePattern keeps an action name usable as a directory name, a path
 // segment in API routes and an output-folder segment.
 var actionNamePattern = regexp.MustCompile(`^[a-z0-9][a-z0-9._-]{0,63}$`)
+
+// Bounds on action.yaml suggestions: at most MaxActionSuggestions entries,
+// each nonblank, unique and at most MaxActionSuggestionLength characters.
+const (
+	MaxActionSuggestions      = 10
+	MaxActionSuggestionLength = 1000
+)
 
 // ValidActionName reports whether name is a well-formed action name: lowercase
 // letters, digits, '.', '_' or '-', starting with a letter or digit, at most 64
@@ -43,11 +52,17 @@ type ActionProblem struct {
 // definition is still listed, with its problems, so it can be repaired; it
 // cannot be launched. RunningExecutionID names the execution currently
 // occupying the action, if any.
+//
+// Suggestions are the action.yaml suggested prompts, in file order: manual
+// launch conveniences that only prefill the prompt. They are part of the
+// library views (ActionList, a single definition) and are left out of an
+// architect's AvailableActionList.
 type ActionDefinition struct {
 	Name               string          `json:"name"`
 	Path               string          `json:"path"`
 	Description        string          `json:"description"`
 	Artifacts          string          `json:"artifacts"`
+	Suggestions        []string        `json:"suggestions,omitempty"`
 	Valid              bool            `json:"valid"`
 	Problems           []ActionProblem `json:"problems"`
 	RunningExecutionID string          `json:"running_execution_id,omitempty"`
@@ -181,7 +196,7 @@ type ExecuteActionRequest struct {
 
 // AvailableActionList is the Actions an architect may request: exactly the
 // names in its hiveryn.yaml availableActions, in that order, each enriched
-// from the library. A configured name with no directory in the library is
+// from the library (without Suggestions, which are manual-launch only). A configured name with no directory in the library is
 // listed invalid with a problem saying so, never dropped.
 type AvailableActionList struct {
 	Actions []ActionDefinition `json:"actions"`

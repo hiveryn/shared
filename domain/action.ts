@@ -3,13 +3,18 @@ import type { Session } from "./session";
 /**
  * Actions are global, agent-operated procedures, independent of architects.
  * Each lives in its own Git repository at `HIVERYN_HOME/actions/<name>/`,
- * defined by `action.yaml` (`name`, `description`, `artifacts`) and
+ * defined by `action.yaml` (`name`, `description`, `artifacts`, optional
+ * `suggestions`) and
  * `KICKOFF.md` (containing `{{prompt}}` and `{{output_dir}}`). At most one
  * execution of an action runs at a time, globally. See action.go.
  */
 
 /** Mirrors `ValidActionName` in action.go. */
 export const ACTION_NAME_PATTERN = /^[a-z0-9][a-z0-9._-]{0,63}$/;
+
+/** Mirrors `MaxActionSuggestions` / `MaxActionSuggestionLength` in action.go. */
+export const MAX_ACTION_SUGGESTIONS = 10;
+export const MAX_ACTION_SUGGESTION_LENGTH = 1000;
 
 export interface ActionProblem {
   path: string;
@@ -21,6 +26,12 @@ export interface ActionDefinition {
   path: string;
   description: string;
   artifacts: string;
+  /**
+   * action.yaml suggested prompts, in file order: manual-launch conveniences
+   * that only prefill the prompt. Absent when none are defined, and never
+   * present in an architect's `AvailableActionList`.
+   */
+  suggestions?: string[];
   valid: boolean;
   problems: ActionProblem[];
   running_execution_id?: string;
@@ -105,6 +116,7 @@ export interface ExecuteActionRequest {
 }
 
 /** The Actions an architect may request, in hiveryn.yaml `availableActions` order. */
+/** The architect's `availableActions`; entries never carry `suggestions`. */
 export interface AvailableActionList {
   actions: ActionDefinition[];
 }
