@@ -56,7 +56,7 @@ export type ActionRunStatus =
   | "completed"
   | "failed";
 
-export type ActionRunTrigger = "manual" | "architect";
+export type ActionRunTrigger = "manual" | "architect" | "worker";
 
 export interface ActionRun {
   id: string;
@@ -73,9 +73,11 @@ export interface ActionRun {
   created_at: string;
   started_at?: string;
   ended_at?: string;
-  /** Architect requests only: who may read the result, who asked, why it was denied. */
+  /** Agent requests only: the project that may read the result, who asked, why it was denied. */
   architect_key?: string;
   requester_session_id?: string;
+  /** Worker requests only: the requesting worker's ticket. */
+  requester_ticket_id?: string;
   reason?: string;
   /** Live, not durable: the agent's attention, present only while running. */
   attention?: ActionAgentAttention;
@@ -115,10 +117,19 @@ export interface ExecuteActionRequest {
   prompt: string;
 }
 
-/** The Actions an architect may request, in hiveryn.yaml `availableActions` order. */
-/** The architect's `availableActions`; entries never carry `suggestions`. */
+/** The Actions a project's agents may request, in hiveryn.yaml `availableActions` order; entries never carry `suggestions`. */
 export interface AvailableActionList {
   actions: ActionDefinition[];
+}
+
+export interface AddAvailableActionRequest {
+  name: string;
+}
+
+/** `changed: false` means the name was already listed. */
+export interface AddAvailableActionResult {
+  changed: boolean;
+  available_actions: string[];
 }
 
 /** `available: false` means nothing is known; `status` is then absent, not guessed. */

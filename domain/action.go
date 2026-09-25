@@ -102,15 +102,18 @@ const (
 	ActionRunTriggerManual ActionRunTrigger = "manual"
 	// ActionRunTriggerArchitect: an architect requested it and the user approved.
 	ActionRunTriggerArchitect ActionRunTrigger = "architect"
+	// ActionRunTriggerWorker: a ticket worker requested it and the user approved.
+	ActionRunTriggerWorker ActionRunTrigger = "worker"
 )
 
 // ActionRun is the durable record of one execution, addressed by its stable
 // id. It outlives the agent session: SessionID names the session while it
 // exists, OutputDir the delivered artifact folder. Summary is the agent's
 // concluding summary; Error is the daemon's reason for an execution that
-// failed without (or before) an agent conclusion. For an architect request,
-// ArchitectKey scopes who may read the result, RequesterSessionID names the
-// architect session that asked, Reason keeps the user's denial reason, and
+// failed without (or before) an agent conclusion. For an agent request
+// (architect or worker), ArchitectKey is the project that may read the result,
+// RequesterSessionID names the session that asked, RequesterTicketID the
+// requesting worker's ticket, Reason keeps the user's denial reason, and
 // ProfileName and StartedAt stay empty until the user approves and it starts.
 //
 // A completed run means the requested artifact package was delivered — the
@@ -134,6 +137,7 @@ type ActionRun struct {
 
 	ArchitectKey       string `json:"architect_key,omitempty"`
 	RequesterSessionID string `json:"requester_session_id,omitempty"`
+	RequesterTicketID  string `json:"requester_ticket_id,omitempty"`
 	Reason             string `json:"reason,omitempty"`
 
 	// Attention is live, not part of the durable record: the agent's attention
@@ -187,8 +191,8 @@ type ActionConclusion struct {
 	EndedAt     *time.Time      `json:"ended_at,omitempty"`
 }
 
-// ExecuteActionRequest is an architect's request to run one of its available
-// Actions. The prompt must contain what the action's description asks for.
+// ExecuteActionRequest is an architect's or worker's request to run one of its
+// project's available Actions. The prompt must contain what the action's description asks for.
 type ExecuteActionRequest struct {
 	Name   string `json:"name"`
 	Prompt string `json:"prompt"`
@@ -200,6 +204,19 @@ type ExecuteActionRequest struct {
 // listed invalid with a problem saying so, never dropped.
 type AvailableActionList struct {
 	Actions []ActionDefinition `json:"actions"`
+}
+
+// AddAvailableActionRequest is an architect's request to allow one more
+// Action in its own project's hiveryn.yaml availableActions.
+type AddAvailableActionRequest struct {
+	Name string `json:"name"`
+}
+
+// AddAvailableActionResult reports whether the list changed (false when the
+// name was already listed) and the resulting availableActions, in file order.
+type AddAvailableActionResult struct {
+	Changed          bool     `json:"changed"`
+	AvailableActions []string `json:"available_actions"`
 }
 
 // ActionAgentActivity is what is known about the Action agent's activity.
