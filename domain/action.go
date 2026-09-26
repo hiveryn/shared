@@ -78,7 +78,8 @@ type ActionList struct {
 // running (the user's launch is the approval) and end in completed or failed.
 // An architect's request (executeAction) starts in pending_approval and moves
 // to denied, to failed (it could not start, or its request was abandoned), or
-// to running once the user approves and it launches — keeping the same
+// to running once it is approved (by the user, or when the approval window
+// expires) and it launches — keeping the same
 // execution id from request to result.
 type ActionRunStatus string
 
@@ -192,10 +193,27 @@ type ActionConclusion struct {
 }
 
 // ExecuteActionRequest is an architect's or worker's request to run one of its
-// project's available Actions. The prompt must contain what the action's description asks for.
+// project's available Actions. The prompt must contain what the action's
+// description asks for. Variant is the configured agent variant that runs it:
+// required, never defaulted, and part of the request's identity, so asking for
+// another variant is a different request.
 type ExecuteActionRequest struct {
-	Name   string `json:"name"`
-	Prompt string `json:"prompt"`
+	Name    string `json:"name"`
+	Prompt  string `json:"prompt"`
+	Variant string `json:"variant"`
+}
+
+// ExecuteActionResponse is the resolved executeAction request. The call waits
+// for the approval like createWorkTicket (wait-then-allow): Outcome is the
+// intent verdict — approved or auto_approved (the Action was launched and now
+// runs independently), denied_by_user (it never ran) or error (it could not
+// start; Reason says why). Result is the execution record under the execution
+// id, which is also the intent id; follow it with the result and wait tools.
+// The call never waits for the Action to deliver.
+type ExecuteActionResponse struct {
+	Outcome IntentOutcome `json:"outcome"`
+	Reason  string        `json:"reason,omitempty"`
+	Result  ActionResult  `json:"result"`
 }
 
 // AvailableActionList is the Actions an architect may request: exactly the

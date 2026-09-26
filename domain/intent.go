@@ -22,8 +22,9 @@ type IntentType string
 const (
 	IntentTypeConcludeSession  IntentType = "concludeSession"
 	IntentTypeCreateWorkTicket IntentType = "createWorkTicket"
-	// IntentTypeExecuteAction is an architect's request to run an Action. It is
-	// deferred: the intent id is also the Action execution id.
+	// IntentTypeExecuteAction is an architect's or worker's request to run an
+	// Action with a chosen variant. It is blocking (wait-then-allow, like
+	// createWorkTicket): the intent id is also the Action execution id.
 	IntentTypeExecuteAction IntentType = "executeAction"
 )
 

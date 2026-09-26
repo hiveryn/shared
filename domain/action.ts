@@ -1,3 +1,4 @@
+import type { IntentOutcome } from "./intent";
 import type { Session } from "./session";
 
 /**
@@ -112,9 +113,18 @@ export interface ActionConclusion {
   ended_at?: string;
 }
 
+/** `variant` is required and part of the request identity. See action.go. */
 export interface ExecuteActionRequest {
   name: string;
   prompt: string;
+  variant: string;
+}
+
+/** The resolved executeAction request (wait-then-allow). See action.go. */
+export interface ExecuteActionResponse {
+  outcome: IntentOutcome;
+  reason?: string;
+  result: ActionResult;
 }
 
 /** The Actions a project's agents may request, in hiveryn.yaml `availableActions` order; entries never carry `suggestions`. */
