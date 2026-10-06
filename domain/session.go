@@ -20,6 +20,9 @@ const (
 
 const (
 	SessionCreatedByDesktop SessionCreatedBy = "desktop"
+	// SessionCreatedByArchitect marks a ticket session launched through an
+	// architect's approved spawnTicketWorker request.
+	SessionCreatedByArchitect SessionCreatedBy = "architect"
 )
 
 const (
@@ -125,6 +128,44 @@ type CreateSessionRequest struct {
 	ArchitectKey string      `json:"architect_key"`
 	TicketID     string      `json:"ticket_id,omitempty"`
 	Workflows    []string    `json:"workflows,omitempty"`
+}
+
+// SpawnTicketWorkerRequest is an architect's request to launch a worker for
+// one of its own backlog tickets. Variant is the configured agent variant:
+// required, never defaulted. Workflows names files in the architect
+// workspace's workflows/ directory, as NAME or NAME.md; the list is the whole
+// selection (empty selects none), equivalent names are one selection, and
+// paths are refused.
+type SpawnTicketWorkerRequest struct {
+	TicketID  string   `json:"ticket_id"`
+	Variant   string   `json:"variant"`
+	Workflows []string `json:"workflows,omitempty"`
+}
+
+// SpawnTicketWorkerResponse is the resolved spawnTicketWorker request. The
+// call waits for the approval (wait-then-allow): Outcome approved or
+// auto_approved means the worker session was launched and Worker identifies
+// it; denied_by_user means nothing was launched; error means the launch
+// failed after approval or the request ended unresolved, with Reason saying
+// why. The call never waits for the worker to finish.
+type SpawnTicketWorkerResponse struct {
+	IntentID string               `json:"intent_id"`
+	Outcome  IntentOutcome        `json:"outcome"`
+	Reason   string               `json:"reason,omitempty"`
+	Worker   *SpawnedTicketWorker `json:"worker,omitempty"`
+}
+
+// SpawnedTicketWorker identifies the launched worker session. Workflows are
+// the selected workflow names, in selection order; WorkflowPaths their
+// canonical paths as recorded on the session.
+type SpawnedTicketWorker struct {
+	SessionID      string   `json:"session_id"`
+	RunID          string   `json:"run_id"`
+	MainTerminalID string   `json:"main_terminal_id"`
+	TicketID       string   `json:"ticket_id"`
+	Variant        string   `json:"variant"`
+	Workflows      []string `json:"workflows"`
+	WorkflowPaths  []string `json:"workflow_paths"`
 }
 
 type CreateSessionParams struct {

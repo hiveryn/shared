@@ -12,7 +12,11 @@ import type { SessionType } from "./session";
  * Distinct from Session (the spawn record): a Session is "run an agent", an
  * Intent is "the agent wants to do something first".
  */
-export type IntentType = "concludeSession" | "createWorkTicket" | "executeAction";
+export type IntentType =
+  | "concludeSession"
+  | "createWorkTicket"
+  | "executeAction"
+  | "spawnTicketWorker";
 
 /**
  * The agent-facing verdict. `denied_*` means the action did NOT run and must

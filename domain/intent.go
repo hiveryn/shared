@@ -26,11 +26,16 @@ const (
 	// Action with a chosen variant. It is blocking (wait-then-allow, like
 	// createWorkTicket): the intent id is also the Action execution id.
 	IntentTypeExecuteAction IntentType = "executeAction"
+	// IntentTypeSpawnTicketWorker is an architect's request to launch a worker
+	// session for one of its backlog tickets with a chosen variant and an
+	// explicit workflow selection. It is blocking (wait-then-allow, like
+	// createWorkTicket).
+	IntentTypeSpawnTicketWorker IntentType = "spawnTicketWorker"
 )
 
 func (t IntentType) Valid() bool {
 	switch t {
-	case IntentTypeConcludeSession, IntentTypeCreateWorkTicket, IntentTypeExecuteAction:
+	case IntentTypeConcludeSession, IntentTypeCreateWorkTicket, IntentTypeExecuteAction, IntentTypeSpawnTicketWorker:
 		return true
 	default:
 		return false

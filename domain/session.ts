@@ -1,10 +1,12 @@
 import type { CommitRef } from "./commit";
+import type { IntentOutcome } from "./intent";
 import type { TicketOutcome } from "./ticket";
 
 /** `action` sessions run one Action execution: `architect_key` is empty and `context_id` is the execution id. */
 export type SessionType = "architect" | "ticket" | "action";
 
-export type SessionCreatedBy = "desktop";
+/** `architect`: launched through an approved spawnTicketWorker request. */
+export type SessionCreatedBy = "desktop" | "architect";
 
 export type SessionRunStatus = "running" | "completed" | "failed";
 
@@ -97,6 +99,32 @@ export interface CreateSessionRequest {
   architect_key: string;
   ticket_id?: string;
   workflows?: string[];
+}
+
+/** An architect's worker launch request (spawnTicketWorker). See session.go. */
+export interface SpawnTicketWorkerRequest {
+  ticket_id: string;
+  variant: string;
+  workflows?: string[];
+}
+
+/** The resolved spawnTicketWorker request (wait-then-allow). See session.go. */
+export interface SpawnTicketWorkerResponse {
+  intent_id: string;
+  outcome: IntentOutcome;
+  reason?: string;
+  worker?: SpawnedTicketWorker;
+}
+
+/** The launched worker session; `workflows` are names, `workflow_paths` canonical paths. */
+export interface SpawnedTicketWorker {
+  session_id: string;
+  run_id: string;
+  main_terminal_id: string;
+  ticket_id: string;
+  variant: string;
+  workflows: string[];
+  workflow_paths: string[];
 }
 
 export interface CreateSessionParams {
