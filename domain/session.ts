@@ -16,7 +16,13 @@ export type SessionRunFailureReason =
   | "restore_failed"
   | "user_cancelled";
 
+/**
+ * A run's variant, frozen at launch. `machine` is the execution location it
+ * was launched for; absent means local or a run launched before variants were
+ * machine-scoped — the session's own `machine` is authoritative either way.
+ */
 export interface AgentProfileSnapshot {
+  machine?: string;
   agent: string;
   model?: string;
   yolo?: boolean;
