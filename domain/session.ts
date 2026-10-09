@@ -35,6 +35,8 @@ export interface AgentProfileSnapshot {
  * runs and resumes; the files are read live by the worker, never copied.
  */
 export interface Session {
+  machine?: string;
+  connection?: "connected" | "disconnected" | "missing";
   id: string;
   architect_key: string;
   session_type: SessionType;
@@ -211,7 +213,7 @@ export interface TerminalInfo {
   workdir_display_path?: string;
 }
 
-export interface TerminalWorkdir { id: string; title: string; path: string; display_path: string; default: boolean; }
+export interface TerminalWorkdir { machine?: string; id: string; title: string; path: string; display_path: string; default: boolean; }
 
 export type TerminalPlacement = 'tab' | 'split';
 

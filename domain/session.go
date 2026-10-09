@@ -66,6 +66,12 @@ type AgentProfileSnapshot struct {
 // retained across runs and resumes; the files themselves are read live by the
 // worker and never copied.
 type Session struct {
+	Machine     string `json:"machine,omitempty"`
+	SSH         string `json:"-"`
+	RemoteToken string `json:"-"`
+	RemotePort  int    `json:"-"`
+	Connection  string `json:"connection,omitempty"`
+
 	ID                 string           `json:"id"`
 	ArchitectKey       string           `json:"architect_key"`
 	SessionType        SessionType      `json:"session_type"`
@@ -169,6 +175,11 @@ type SpawnedTicketWorker struct {
 }
 
 type CreateSessionParams struct {
+	Machine     string
+	SSH         string
+	RemoteToken string
+	RemotePort  int
+
 	ID                 string
 	ArchitectKey       string
 	SessionType        SessionType
@@ -286,6 +297,7 @@ type TerminalInfo struct {
 }
 
 type TerminalWorkdir struct {
+	Machine     string `json:"machine,omitempty"`
 	ID          string `json:"id"`
 	Title       string `json:"title"`
 	Path        string `json:"path"`
