@@ -215,19 +215,15 @@ export interface TerminalInfo {
 
 export interface TerminalWorkdir { machine?: string; id: string; title: string; path: string; display_path: string; default: boolean; }
 
-export type TerminalPlacement = 'tab' | 'split';
-
-export type CreateTerminalParams =
-  | { placement: 'tab'; workdir_id: string }
-  | { placement: 'split'; base_tab_id: string; workdir_id: string };
+export interface CreateTerminalParams {
+  workdir_id: string;
+}
 
 export interface SessionTab {
   type: string;
   id?: string;
   command?: string;
   status?: string;
-  placement?: TerminalPlacement;
-  base_tab_id?: string;
   workdir_id?: string;
   workdir_title?: string;
   workdir_path?: string;

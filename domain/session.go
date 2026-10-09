@@ -305,30 +305,19 @@ type TerminalWorkdir struct {
 	Default     bool   `json:"default"`
 }
 
-type TerminalPlacement string
-
-const (
-	TerminalPlacementTab   TerminalPlacement = "tab"
-	TerminalPlacementSplit TerminalPlacement = "split"
-)
-
 type CreateTerminalParams struct {
-	Placement TerminalPlacement `json:"placement"`
-	BaseTabID string            `json:"base_tab_id,omitempty"`
-	WorkdirID string            `json:"workdir_id"`
+	WorkdirID string `json:"workdir_id"`
 }
 
 type SessionTab struct {
-	Type               string            `json:"type"`
-	ID                 string            `json:"id,omitempty"`
-	Command            string            `json:"command,omitempty"`
-	Status             string            `json:"status,omitempty"`
-	Placement          TerminalPlacement `json:"placement,omitempty"`
-	BaseTabID          string            `json:"base_tab_id,omitempty"`
-	WorkdirID          string            `json:"workdir_id,omitempty"`
-	WorkdirTitle       string            `json:"workdir_title,omitempty"`
-	WorkdirPath        string            `json:"workdir_path,omitempty"`
-	WorkdirDisplayPath string            `json:"workdir_display_path,omitempty"`
+	Type               string `json:"type"`
+	ID                 string `json:"id,omitempty"`
+	Command            string `json:"command,omitempty"`
+	Status             string `json:"status,omitempty"`
+	WorkdirID          string `json:"workdir_id,omitempty"`
+	WorkdirTitle       string `json:"workdir_title,omitempty"`
+	WorkdirPath        string `json:"workdir_path,omitempty"`
+	WorkdirDisplayPath string `json:"workdir_display_path,omitempty"`
 }
 
 type ArchitectConclusion struct {
