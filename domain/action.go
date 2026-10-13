@@ -6,8 +6,11 @@ import (
 )
 
 // Actions are global, agent-operated procedures, independent of architects.
-// Each lives in its own Git repository at HIVERYN_HOME/actions/<name>/ and is
-// defined by two files the daemon reads live:
+// Each is registered in HIVERYN_HOME/actions.yaml, which maps its name to an
+// existing Git checkout and an optional machine (machines.yaml key; omitted
+// means local). Registration neither clones nor synchronizes the checkout.
+// The checkout is defined by two files the daemon reads live, on the machine
+// where it lives:
 //
 //   - action.yaml: the keys name (equal to the directory name), description
 //     (what the action does and what the caller's prompt must contain) and
@@ -19,9 +22,12 @@ import (
 //     {{prompt}} and {{output_dir}} exactly once or more each; no other
 //     {{...}} placeholder is allowed.
 //
-// A launch starts one agent session in the action's repository with a fresh,
-// daemon-created, empty output directory outside it. At most one execution of
-// an action runs at a time, globally.
+// A launch starts one agent session in the action's checkout, on its machine,
+// with a fresh, daemon-created, empty working output directory outside it. At
+// most one execution of an action runs at a time, globally. A completed
+// execution names the folder it delivered; the daemon freezes that folder into
+// a managed package on the execution machine and copies the package to each
+// caller's machine on demand.
 
 // actionNamePattern keeps an action name usable as a directory name, a path
 // segment in API routes and an output-folder segment.
@@ -57,9 +63,15 @@ type ActionProblem struct {
 // launch conveniences that only prefill the prompt. They are part of the
 // library views (ActionList, a single definition) and are left out of an
 // architect's AvailableActionList.
+//
+// Machine is where the checkout lives and the Action runs (empty means
+// local); Path is a path on that machine. Variants lists the configured agent
+// variants eligible to run it there.
 type ActionDefinition struct {
 	Name               string          `json:"name"`
 	Path               string          `json:"path"`
+	Machine            string          `json:"machine,omitempty"`
+	Variants           []string        `json:"variants"`
 	Description        string          `json:"description"`
 	Artifacts          string          `json:"artifacts"`
 	Suggestions        []string        `json:"suggestions,omitempty"`
@@ -68,10 +80,10 @@ type ActionDefinition struct {
 	RunningExecutionID string          `json:"running_execution_id,omitempty"`
 }
 
-// ActionList is every directory found under the actions root.
+// ActionList is every Action registered in Registry (actions.yaml).
 type ActionList struct {
-	Root    string             `json:"root"`
-	Actions []ActionDefinition `json:"actions"`
+	Registry string             `json:"registry"`
+	Actions  []ActionDefinition `json:"actions"`
 }
 
 // ActionRunStatus is the lifecycle of one execution. Manual launches start in
@@ -117,6 +129,12 @@ const (
 // requesting worker's ticket, Reason keeps the user's denial reason, and
 // ProfileName and StartedAt stay empty until the user approves and it starts.
 //
+// Machine is where the execution runs (empty means local); RepoPath and
+// OutputDir — the working output directory created for the agent — are paths
+// there. DeliveryDir is the folder the agent concluded with; Package is its
+// frozen snapshot on the execution machine and Deliveries the verified copies
+// made for callers on other machines.
+//
 // A completed run means the requested artifact package was delivered — the
 // artifacts may still report findings such as failed checks. failed means the
 // action could not be executed or delivered.
@@ -129,6 +147,8 @@ type ActionRun struct {
 	ProfileName string           `json:"profile_name"`
 	RepoPath    string           `json:"repo_path"`
 	OutputDir   string           `json:"output_dir"`
+	Machine     string           `json:"machine,omitempty"`
+	DeliveryDir string           `json:"delivery_dir,omitempty"`
 	SessionID   string           `json:"session_id,omitempty"`
 	Summary     string           `json:"summary,omitempty"`
 	Error       string           `json:"error,omitempty"`
@@ -140,6 +160,9 @@ type ActionRun struct {
 	RequesterSessionID string `json:"requester_session_id,omitempty"`
 	RequesterTicketID  string `json:"requester_ticket_id,omitempty"`
 	Reason             string `json:"reason,omitempty"`
+
+	Package    *ActionArtifactCopy  `json:"package,omitempty"`
+	Deliveries []ActionArtifactCopy `json:"deliveries,omitempty"`
 
 	// Attention is live, not part of the durable record: the agent's attention
 	// while the execution runs, attached by the daemon when it serves a
@@ -177,10 +200,74 @@ const (
 // at a glance and fed back to later executions.
 const MaxActionSummaryLength = 2000
 
-// ConcludeActionRequest is the action agent's conclusion.
+// ConcludeActionRequest is the action agent's conclusion. DeliveryDir is the
+// absolute path, on the execution machine, of the folder holding the
+// delivered package: required for completed, refused for failed.
 type ConcludeActionRequest struct {
-	Outcome ActionConclusionOutcome `json:"outcome"`
-	Summary string                  `json:"summary"`
+	Outcome     ActionConclusionOutcome `json:"outcome"`
+	Summary     string                  `json:"summary"`
+	DeliveryDir string                  `json:"delivery_dir,omitempty"`
+}
+
+// ActionArtifactState is the state of a frozen package or of one caller copy.
+type ActionArtifactState string
+
+const (
+	// ActionArtifactsNone: there is no package — the execution has not
+	// completed, or it ended without one.
+	ActionArtifactsNone ActionArtifactState = "none"
+	// ActionArtifactsCopying: a copy is being made; it is not usable yet.
+	ActionArtifactsCopying ActionArtifactState = "copying"
+	// ActionArtifactsReady: the copy is complete and verified.
+	ActionArtifactsReady ActionArtifactState = "ready"
+	// ActionArtifactsFailed: the last copy attempt failed (Error says why);
+	// reading the result again retries it.
+	ActionArtifactsFailed ActionArtifactState = "failed"
+	// ActionArtifactsExpired: the retention period ended; the files are gone
+	// (or are being removed) while the execution record stays.
+	ActionArtifactsExpired ActionArtifactState = "expired"
+)
+
+// ActionArtifactCopy is one Hiveryn-managed artifact directory: the frozen
+// package on the execution machine, or a caller copy on another machine.
+// Machine is where Path lives (empty means local). ExpiresAt counts from the
+// execution's completion and is nil for a package that never expires (one
+// delivered before frozen packages existed, kept at its original folder).
+// CleanupError is the last failed attempt to remove it after expiry, retried
+// at the next daemon start.
+type ActionArtifactCopy struct {
+	Machine      string              `json:"machine,omitempty"`
+	Path         string              `json:"path"`
+	State        ActionArtifactState `json:"state"`
+	Error        string              `json:"error,omitempty"`
+	CleanupError string              `json:"cleanup_error,omitempty"`
+	Files        int                 `json:"files"`
+	Bytes        int64               `json:"bytes"`
+	ReadyAt      *time.Time          `json:"ready_at,omitempty"`
+	ExpiresAt    *time.Time          `json:"expires_at,omitempty"`
+}
+
+// ActionArtifactLocation names a directory on a machine (empty means local).
+type ActionArtifactLocation struct {
+	Machine string `json:"machine,omitempty"`
+	Path    string `json:"path"`
+}
+
+// ActionArtifacts is a caller's view of a completed execution's package, on
+// the caller's own machine. State is ready once a usable copy exists there —
+// the frozen package itself when the caller runs where the Action ran, a
+// verified copy otherwise — and the result's OutputDir is then its path.
+// copying means a copy is in progress (read the result again), failed that the
+// last attempt failed (Error says why; reading the result again retries), and
+// expired that the retention period ended. Delivery never changes the
+// execution's status. Source is the frozen package on the execution machine.
+type ActionArtifacts struct {
+	State     ActionArtifactState     `json:"state"`
+	Error     string                  `json:"error,omitempty"`
+	Files     int                     `json:"files,omitempty"`
+	Bytes     int64                   `json:"bytes,omitempty"`
+	ExpiresAt *time.Time              `json:"expires_at,omitempty"`
+	Source    *ActionArtifactLocation `json:"source,omitempty"`
 }
 
 // ActionConclusion is one earlier execution's concluding summary, as returned
@@ -298,13 +385,16 @@ type ActionAgentAttention struct {
 // final. ElapsedSeconds counts from StartedAt to EndedAt (or now) and is unset
 // until it starts. Reason is the user's denial reason, Error the reason it
 // failed without or before an agent conclusion, Summary the agent's
-// conclusion; OutputDir is set once the execution started.
+// conclusion. Machine is where the Action runs (empty means local). OutputDir
+// is set only when Artifacts is ready: the package's path on the caller's
+// machine.
 type ActionResult struct {
 	ExecutionID    string               `json:"execution_id"`
 	Action         string               `json:"action"`
 	Status         ActionRunStatus      `json:"status"`
 	Prompt         string               `json:"prompt"`
 	ProfileName    string               `json:"profile_name,omitempty"`
+	Machine        string               `json:"machine,omitempty"`
 	RequestedAt    time.Time            `json:"requested_at"`
 	StartedAt      *time.Time           `json:"started_at,omitempty"`
 	EndedAt        *time.Time           `json:"ended_at,omitempty"`
@@ -313,6 +403,7 @@ type ActionResult struct {
 	Error          string               `json:"error,omitempty"`
 	Summary        string               `json:"summary,omitempty"`
 	OutputDir      string               `json:"output_dir,omitempty"`
+	Artifacts      ActionArtifacts      `json:"artifacts"`
 	Activity       ActionAgentActivity  `json:"activity"`
 	Attention      ActionAgentAttention `json:"attention"`
 }

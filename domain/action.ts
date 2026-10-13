@@ -3,11 +3,14 @@ import type { Session } from "./session";
 
 /**
  * Actions are global, agent-operated procedures, independent of architects.
- * Each lives in its own Git repository at `HIVERYN_HOME/actions/<name>/`,
- * defined by `action.yaml` (`name`, `description`, `artifacts`, optional
+ * Each is registered in `HIVERYN_HOME/actions.yaml` (name → existing Git
+ * checkout plus optional machine; omitted means local) and defined by the
+ * checkout's `action.yaml` (`name`, `description`, `artifacts`, optional
  * `suggestions`) and
  * `KICKOFF.md` (containing `{{prompt}}` and `{{output_dir}}`). At most one
- * execution of an action runs at a time, globally. See action.go.
+ * execution of an action runs at a time, globally. A completed execution's
+ * delivered folder is frozen into a managed package on the execution machine
+ * and copied to callers on other machines on demand. See action.go.
  */
 
 /** Mirrors `ValidActionName` in action.go. */
@@ -24,7 +27,12 @@ export interface ActionProblem {
 
 export interface ActionDefinition {
   name: string;
+  /** The checkout path, on `machine`. */
   path: string;
+  /** Where the Action runs: a machines.yaml key; absent means local. */
+  machine?: string;
+  /** The configured variants eligible to run it on that machine. */
+  variants: string[];
   description: string;
   artifacts: string;
   /**
@@ -39,7 +47,8 @@ export interface ActionDefinition {
 }
 
 export interface ActionList {
-  root: string;
+  /** The actions.yaml registry the list comes from. */
+  registry: string;
   actions: ActionDefinition[];
 }
 
@@ -66,8 +75,13 @@ export interface ActionRun {
   status: ActionRunStatus;
   prompt: string;
   profile_name: string;
+  /** Paths on `machine`: the checkout and the working output directory created for the agent. */
   repo_path: string;
   output_dir: string;
+  /** Where the execution runs; absent means local. */
+  machine?: string;
+  /** The folder the agent concluded with (the snapshot source), on `machine`. */
+  delivery_dir?: string;
   session_id?: string;
   summary?: string;
   error?: string;
@@ -80,6 +94,10 @@ export interface ActionRun {
   /** Worker requests only: the requesting worker's ticket. */
   requester_ticket_id?: string;
   reason?: string;
+  /** The frozen package on the execution machine, once completed. */
+  package?: ActionArtifactCopy;
+  /** Verified copies made for callers on other machines. */
+  deliveries?: ActionArtifactCopy[];
   /** Live, not durable: the agent's attention, present only while running. */
   attention?: ActionAgentAttention;
 }
@@ -101,9 +119,45 @@ export type ActionConclusionOutcome = "completed" | "failed";
 
 export const MAX_ACTION_SUMMARY_LENGTH = 2000;
 
+/** `delivery_dir` is required for completed and refused for failed. */
 export interface ConcludeActionRequest {
   outcome: ActionConclusionOutcome;
   summary: string;
+  delivery_dir?: string;
+}
+
+/** See ActionArtifactState in action.go. */
+export type ActionArtifactState = "none" | "copying" | "ready" | "failed" | "expired";
+
+/**
+ * A Hiveryn-managed artifact directory on `machine` (absent means local): the
+ * frozen package or a caller copy. `expires_at` absent means it never expires.
+ */
+export interface ActionArtifactCopy {
+  machine?: string;
+  path: string;
+  state: ActionArtifactState;
+  error?: string;
+  cleanup_error?: string;
+  files: number;
+  bytes: number;
+  ready_at?: string;
+  expires_at?: string;
+}
+
+export interface ActionArtifactLocation {
+  machine?: string;
+  path: string;
+}
+
+/** A caller's view of the package on its own machine. See action.go. */
+export interface ActionArtifacts {
+  state: ActionArtifactState;
+  error?: string;
+  files?: number;
+  bytes?: number;
+  expires_at?: string;
+  source?: ActionArtifactLocation;
 }
 
 export interface ActionConclusion {
@@ -176,6 +230,7 @@ export interface ActionResult {
   status: ActionRunStatus;
   prompt: string;
   profile_name?: string;
+  machine?: string;
   requested_at: string;
   started_at?: string;
   ended_at?: string;
@@ -183,7 +238,9 @@ export interface ActionResult {
   reason?: string;
   error?: string;
   summary?: string;
+  /** Set only when `artifacts.state` is ready: the package on the caller's machine. */
   output_dir?: string;
+  artifacts: ActionArtifacts;
   activity: ActionAgentActivity;
   attention: ActionAgentAttention;
 }
