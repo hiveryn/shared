@@ -27,20 +27,46 @@ type TicketWarning struct {
 type TicketReferenceType string
 type PathReferenceKind string
 
+// PathReferenceStatus is the outcome of inspecting a path reference where it
+// lives: present, confirmed missing, or unverified (it could not be
+// inspected; Error says why).
+type PathReferenceStatus string
+
+// PathReferenceLocation is where a path reference was interpreted: on the
+// daemon's machine, on a remote machine (Machine names it), or unknown when
+// the ticket's primary-repo machine could not be determined. Unknown is never
+// local.
+type PathReferenceLocation string
+
 const (
 	TicketReferenceTicket  TicketReferenceType = "ticket"
 	TicketReferencePath    TicketReferenceType = "path"
 	PathReferenceFile      PathReferenceKind   = "file"
 	PathReferenceDirectory PathReferenceKind   = "directory"
+
+	PathReferencePresent    PathReferenceStatus = "present"
+	PathReferenceMissing    PathReferenceStatus = "missing"
+	PathReferenceUnverified PathReferenceStatus = "unverified"
+
+	PathReferenceLocal   PathReferenceLocation = "local"
+	PathReferenceRemote  PathReferenceLocation = "remote"
+	PathReferenceUnknown PathReferenceLocation = "unknown"
 )
 
 // TicketReference is the daemon-resolved view of an entry in References.
-// Value remains the portable string serialized in ticket.md.
+// Value remains the portable string serialized in ticket.md. Path references
+// always carry Status and Location (Exists mirrors Status == present); a
+// remote one names its Machine and an unverified one its Error. Ticket-ID
+// references carry only Exists.
 type TicketReference struct {
-	Value  string              `json:"value"`
-	Type   TicketReferenceType `json:"type"`
-	Exists bool                `json:"exists"`
-	Kind   PathReferenceKind   `json:"kind,omitempty"`
+	Value    string                `json:"value"`
+	Type     TicketReferenceType   `json:"type"`
+	Exists   bool                  `json:"exists"`
+	Kind     PathReferenceKind     `json:"kind,omitempty"`
+	Status   PathReferenceStatus   `json:"status,omitempty"`
+	Location PathReferenceLocation `json:"location,omitempty"`
+	Machine  string                `json:"machine,omitempty"`
+	Error    string                `json:"error,omitempty"`
 }
 
 type TicketSummary struct {

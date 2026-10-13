@@ -7,9 +7,33 @@ export interface TicketWarning {
   message: string;
 }
 
-export type TicketReference =
-  | { value: string; type: "ticket"; exists: boolean }
-  | { value: string; type: "path"; exists: boolean; kind?: "file" | "directory" };
+/** Outcome of inspecting a path reference where it lives; unverified means it could not be inspected. */
+export type PathReferenceStatus = "present" | "missing" | "unverified";
+
+/** Where a path reference was interpreted; unknown (primary-repo machine undetermined) is never local. */
+export type PathReferenceLocation = "local" | "remote" | "unknown";
+
+export interface TicketIdReference {
+  value: string;
+  type: "ticket";
+  exists: boolean;
+}
+
+export interface PathReference {
+  value: string;
+  type: "path";
+  /** Mirrors `status === "present"`. */
+  exists: boolean;
+  kind?: "file" | "directory";
+  status: PathReferenceStatus;
+  location: PathReferenceLocation;
+  /** The machine name, when `location` is remote. */
+  machine?: string;
+  /** Why the path could not be inspected, when `status` is unverified. */
+  error?: string;
+}
+
+export type TicketReference = TicketIdReference | PathReference;
 
 export interface TicketSummary {
   id: string;
