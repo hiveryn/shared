@@ -310,19 +310,6 @@ type AvailableActionList struct {
 	Actions []ActionDefinition `json:"actions"`
 }
 
-// AddAvailableActionRequest is an architect's request to allow one more
-// Action in its own project's hiveryn.yaml availableActions.
-type AddAvailableActionRequest struct {
-	Name string `json:"name"`
-}
-
-// AddAvailableActionResult reports whether the list changed (false when the
-// name was already listed) and the resulting availableActions, in file order.
-type AddAvailableActionResult struct {
-	Changed          bool     `json:"changed"`
-	AvailableActions []string `json:"available_actions"`
-}
-
 // ActionAgentActivity is what is known about the Action agent's activity.
 // Available is false when nothing is known — before the execution starts,
 // after it ends, or while the agent has reported no status yet — and Status

@@ -192,16 +192,6 @@ export interface AvailableActionList {
   actions: ActionDefinition[];
 }
 
-export interface AddAvailableActionRequest {
-  name: string;
-}
-
-/** `changed: false` means the name was already listed. */
-export interface AddAvailableActionResult {
-  changed: boolean;
-  available_actions: string[];
-}
-
 /** `available: false` means nothing is known; `status` is then absent, not guessed. */
 export interface ActionAgentActivity {
   available: boolean;
