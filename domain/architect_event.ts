@@ -14,7 +14,9 @@ export const ARCHITECT_EVENT_TYPE = "workspace_changed";
  * terminal). It is the only signal that names a session id, and therefore the
  * only way a client can discover a session it did not create itself (a spawn
  * from another window). `session_ended` announces
- * a session that is gone (concluded or discarded).
+ * a session that is gone (concluded or discarded). `agent_message_changed`
+ * announces that an agent message of this project changed state; clients list
+ * the messages again (the event carries no message id).
  */
 export type ArchitectEventReason =
   | "ticket_created"
@@ -23,7 +25,8 @@ export type ArchitectEventReason =
   | "ticket_deleted"
   | "ticket_concluded"
   | "session_started"
-  | "session_ended";
+  | "session_ended"
+  | "agent_message_changed";
 
 /**
  * Published per architect key and fanned out to every subscriber of that

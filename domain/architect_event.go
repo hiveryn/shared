@@ -27,6 +27,10 @@ const (
 	// discarded), so a client that missed the session-scoped lifecycle event can
 	// still drop it.
 	ArchitectEventSessionEnded ArchitectEventReason = "session_ended"
+	// ArchitectEventAgentMessageChanged announces that an agent message of
+	// this architect's project changed state (created, handed, appeared,
+	// failed...). Clients list the messages again; the event carries no id.
+	ArchitectEventAgentMessageChanged ArchitectEventReason = "agent_message_changed"
 )
 
 func (r ArchitectEventReason) Valid() bool {
@@ -37,7 +41,8 @@ func (r ArchitectEventReason) Valid() bool {
 		ArchitectEventTicketDeleted,
 		ArchitectEventTicketConcluded,
 		ArchitectEventSessionStarted,
-		ArchitectEventSessionEnded:
+		ArchitectEventSessionEnded,
+		ArchitectEventAgentMessageChanged:
 		return true
 	default:
 		return false
