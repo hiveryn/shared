@@ -14,20 +14,18 @@ import (
 //
 //   - action.yaml: the keys name (equal to the registered name), description
 //     (what the action does and what the caller's prompt must contain) and
-//     artifacts (the textual contract of the delivered package, including a
+//     optional artifacts (the nonempty textual contract of the delivered package, including a
 //     schema summary where useful), and required suggestions: a list of
 //     example prompts offered to users and agents. No other key is
 //     allowed.
 //   - KICKOFF.md: the launch instructions, containing the placeholders
-//     {{prompt}} and {{output_dir}} exactly once or more each; no other
+//     {{prompt}} and, when artifacts are declared, {{output_dir}}; no other
 //     {{...}} placeholder is allowed.
 //
-// A launch starts one agent session in the action's checkout, on its machine,
-// with a fresh, daemon-created, empty working output directory outside it. At
-// most one execution of an action runs at a time, globally. A completed
-// execution names the folder it delivered; the daemon freezes that folder into
-// a managed package on the execution machine and copies the package to each
-// caller's machine on demand.
+// A launch starts one agent session in the checkout on its registered machine.
+// Artifact-producing Actions also receive a fresh output directory. At most one
+// execution per Action runs at a time. Preparation freezes a private snapshot;
+// approved completed/failed conclusions publish it for automatic caller delivery.
 
 // actionNamePattern keeps an action name usable as a directory name, a path
 // segment in API routes and an output-folder segment.
@@ -72,7 +70,7 @@ type ActionDefinition struct {
 	Machine            string          `json:"machine,omitempty"`
 	Variants           []string        `json:"variants"`
 	Description        string          `json:"description"`
-	Artifacts          string          `json:"artifacts"`
+	Artifacts          string          `json:"artifacts,omitempty"`
 	Suggestions        []string        `json:"suggestions,omitempty"`
 	Valid              bool            `json:"valid"`
 	Problems           []ActionProblem `json:"problems"`
@@ -130,30 +128,31 @@ const (
 //
 // Machine is where the execution runs (empty means local); RepoPath and
 // OutputDir — the working output directory created for the agent — are paths
-// there. DeliveryDir is the folder the agent concluded with; Package is its
+// there. DeliveryDir is historical source-folder metadata; Package is its
 // frozen snapshot on the execution machine and Deliveries the verified copies
 // made for callers on other machines.
 //
-// A completed run means the requested artifact package was delivered — the
-// artifacts may still report findings such as failed checks. failed means the
-// action could not be executed or delivered.
+// A completed run means the requested work finished, with a package when
+// promised. Failed may include approved partial artifacts. ArtifactContract is
+// frozen at launch; an empty contract means no files are promised.
 type ActionRun struct {
-	ID          string           `json:"id"`
-	Action      string           `json:"action"`
-	Trigger     ActionRunTrigger `json:"trigger"`
-	Status      ActionRunStatus  `json:"status"`
-	Prompt      string           `json:"prompt"`
-	ProfileName string           `json:"profile_name"`
-	RepoPath    string           `json:"repo_path"`
-	OutputDir   string           `json:"output_dir"`
-	Machine     string           `json:"machine,omitempty"`
-	DeliveryDir string           `json:"delivery_dir,omitempty"`
-	SessionID   string           `json:"session_id,omitempty"`
-	Summary     string           `json:"summary,omitempty"`
-	Error       string           `json:"error,omitempty"`
-	CreatedAt   time.Time        `json:"created_at"`
-	StartedAt   *time.Time       `json:"started_at,omitempty"`
-	EndedAt     *time.Time       `json:"ended_at,omitempty"`
+	ArtifactContract string           `json:"artifact_contract,omitempty"`
+	ID               string           `json:"id"`
+	Action           string           `json:"action"`
+	Trigger          ActionRunTrigger `json:"trigger"`
+	Status           ActionRunStatus  `json:"status"`
+	Prompt           string           `json:"prompt"`
+	ProfileName      string           `json:"profile_name"`
+	RepoPath         string           `json:"repo_path"`
+	OutputDir        string           `json:"output_dir"`
+	Machine          string           `json:"machine,omitempty"`
+	DeliveryDir      string           `json:"delivery_dir,omitempty"`
+	SessionID        string           `json:"session_id,omitempty"`
+	Summary          string           `json:"summary,omitempty"`
+	Error            string           `json:"error,omitempty"`
+	CreatedAt        time.Time        `json:"created_at"`
+	StartedAt        *time.Time       `json:"started_at,omitempty"`
+	EndedAt          *time.Time       `json:"ended_at,omitempty"`
 
 	ArchitectKey       string `json:"architect_key,omitempty"`
 	RequesterSessionID string `json:"requester_session_id,omitempty"`
@@ -189,7 +188,7 @@ type LaunchActionResult struct {
 type ActionConclusionOutcome string
 
 const (
-	// ActionConclusionCompleted: the requested artifact package was delivered.
+	// ActionConclusionCompleted: the requested work finished and any promised package was prepared.
 	ActionConclusionCompleted ActionConclusionOutcome = "completed"
 	// ActionConclusionFailed: the action could not be executed or delivered.
 	ActionConclusionFailed ActionConclusionOutcome = "failed"
@@ -199,13 +198,12 @@ const (
 // at a glance and fed back to later executions.
 const MaxActionSummaryLength = 2000
 
-// ConcludeActionRequest is the action agent's conclusion. DeliveryDir is the
-// absolute path, on the execution machine, of the folder holding the
-// delivered package: required for completed, refused for failed.
+// ConcludeActionRequest publishes the recorded prepared package on approval.
+// Completed requires preparation only if the launch declared artifacts; failed
+// may publish partial results. Neither outcome takes a path or artifact flag.
 type ConcludeActionRequest struct {
-	Outcome     ActionConclusionOutcome `json:"outcome"`
-	Summary     string                  `json:"summary"`
-	DeliveryDir string                  `json:"delivery_dir,omitempty"`
+	Outcome ActionConclusionOutcome `json:"outcome"`
+	Summary string                  `json:"summary"`
 }
 
 // ActionArtifactState is the state of a frozen package or of one caller copy.
@@ -215,6 +213,8 @@ const (
 	// ActionArtifactsNone: there is no package — the execution has not
 	// completed, or it ended without one.
 	ActionArtifactsNone ActionArtifactState = "none"
+	// ActionArtifactsPrepared is private until conclusion approval.
+	ActionArtifactsPrepared ActionArtifactState = "prepared"
 	// ActionArtifactsCopying: a copy is being made; it is not usable yet.
 	ActionArtifactsCopying ActionArtifactState = "copying"
 	// ActionArtifactsReady: the copy is complete and verified.
@@ -252,7 +252,7 @@ type ActionArtifactLocation struct {
 	Path    string `json:"path"`
 }
 
-// ActionArtifacts is a caller's view of a completed execution's package, on
+// ActionArtifacts is a caller's view of an approved execution's package, on
 // the caller's own machine. State is ready once a usable copy exists there —
 // the frozen package itself when the caller runs where the Action ran, a
 // verified copy otherwise — and the result's OutputDir is then its path.

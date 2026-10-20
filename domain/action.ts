@@ -5,12 +5,12 @@ import type { Session } from "./session";
  * Actions are global, agent-operated procedures, independent of architects.
  * Each is registered in `HIVERYN_HOME/actions.yaml` (name → existing Git
  * checkout plus optional machine; omitted means local) and defined by the
- * checkout's `action.yaml` (`name`, `description`, `artifacts`, required
+ * checkout's `action.yaml` (`name`, `description`, optional `artifacts`, required
  * `suggestions`) and
- * `KICKOFF.md` (containing `{{prompt}}` and `{{output_dir}}`). At most one
- * execution of an action runs at a time, globally. A completed execution's
- * delivered folder is frozen into a managed package on the execution machine
- * and copied to callers on other machines on demand. See action.go.
+ * `KICKOFF.md` (containing `{{prompt}}` and, for artifact-producing Actions,
+ * `{{output_dir}}`). At most one execution of an Action runs at a time.
+ * Preparation freezes a private snapshot; an approved completed/failed
+ * conclusion publishes it for automatic caller delivery. See action.go.
  */
 
 /** Mirrors `ValidActionName` in action.go. */
@@ -35,7 +35,7 @@ export interface ActionDefinition {
   /** The configured variants eligible to run it on that machine. */
   variants: string[];
   description: string;
-  artifacts: string;
+  artifacts?: string;
   /**
    * action.yaml suggested prompts, in file order: examples shared by manual launch and agent discovery.
    * Required for valid definitions; adapt example inputs to the actual request.
@@ -69,6 +69,7 @@ export type ActionRunStatus =
 export type ActionRunTrigger = "manual" | "architect" | "worker";
 
 export interface ActionRun {
+  artifact_contract?: string;
   id: string;
   action: string;
   trigger: ActionRunTrigger;
@@ -119,15 +120,20 @@ export type ActionConclusionOutcome = "completed" | "failed";
 
 export const MAX_ACTION_SUMMARY_LENGTH = 2000;
 
-/** `delivery_dir` is required for completed and refused for failed. */
+/** Publishes the prepared package on approval; failed may retain partial results. */
 export interface ConcludeActionRequest {
   outcome: ActionConclusionOutcome;
   summary: string;
-  delivery_dir?: string;
 }
 
 /** See ActionArtifactState in action.go. */
-export type ActionArtifactState = "none" | "copying" | "ready" | "failed" | "expired";
+export type ActionArtifactState =
+  | "none"
+  | "prepared"
+  | "copying"
+  | "ready"
+  | "failed"
+  | "expired";
 
 /**
  * A Hiveryn-managed artifact directory on `machine` (absent means local): the
