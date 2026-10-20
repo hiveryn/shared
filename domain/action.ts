@@ -35,6 +35,8 @@ export interface ActionDefinition {
   /** The configured variants eligible to run it on that machine. */
   variants: string[];
   description: string;
+  /** Normalized policy; absent on legacy payloads (nonempty contract implies required). */
+  artifact_mode?: "none" | "optional" | "required";
   artifacts?: string;
   /**
    * action.yaml suggested prompts, in file order: examples shared by manual launch and agent discovery.
@@ -69,6 +71,8 @@ export type ActionRunStatus =
 export type ActionRunTrigger = "manual" | "architect" | "worker";
 
 export interface ActionRun {
+  /** Normalized policy; absent on legacy payloads (nonempty contract implies required). */
+  artifact_mode?: "none" | "optional" | "required";
   artifact_contract?: string;
   id: string;
   action: string;

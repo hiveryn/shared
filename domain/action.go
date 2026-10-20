@@ -14,12 +14,12 @@ import (
 //
 //   - action.yaml: the keys name (equal to the registered name), description
 //     (what the action does and what the caller's prompt must contain) and
-//     optional artifacts (the nonempty textual contract of the delivered package, including a
-//     schema summary where useful), and required suggestions: a list of
+//     optional artifacts (mode: none|optional|required and description; legacy
+//     nonempty strings imply required, omission implies none), and required suggestions: a list of
 //     example prompts offered to users and agents. No other key is
 //     allowed.
 //   - KICKOFF.md: the launch instructions, containing the placeholders
-//     {{prompt}} and, when artifacts are declared, {{output_dir}}; no other
+//     {{prompt}} and, when artifacts are optional or required, {{output_dir}}; no other
 //     {{...}} placeholder is allowed.
 //
 // A launch starts one agent session in the checkout on its registered machine.
@@ -70,11 +70,24 @@ type ActionDefinition struct {
 	Machine            string          `json:"machine,omitempty"`
 	Variants           []string        `json:"variants"`
 	Description        string          `json:"description"`
+	ArtifactMode       string          `json:"artifact_mode"`
 	Artifacts          string          `json:"artifacts,omitempty"`
 	Suggestions        []string        `json:"suggestions,omitempty"`
 	Valid              bool            `json:"valid"`
 	Problems           []ActionProblem `json:"problems"`
 	RunningExecutionID string          `json:"running_execution_id,omitempty"`
+}
+
+// EffectiveArtifactMode preserves legacy declarations and stored runs.
+// New definitions always carry an explicit normalized mode.
+func EffectiveArtifactMode(mode, contract string) string {
+	if mode != "" {
+		return mode
+	}
+	if contract != "" {
+		return "required"
+	}
+	return "none"
 }
 
 // ActionList is every Action registered in Registry (actions.yaml).
@@ -134,8 +147,9 @@ const (
 //
 // A completed run means the requested work finished, with a package when
 // promised. Failed may include approved partial artifacts. ArtifactContract is
-// frozen at launch; an empty contract means no files are promised.
+// frozen at launch together with ArtifactMode. Legacy nonempty contracts imply required.
 type ActionRun struct {
+	ArtifactMode     string           `json:"artifact_mode"`
 	ArtifactContract string           `json:"artifact_contract,omitempty"`
 	ID               string           `json:"id"`
 	Action           string           `json:"action"`
@@ -199,7 +213,7 @@ const (
 const MaxActionSummaryLength = 2000
 
 // ConcludeActionRequest publishes the recorded prepared package on approval.
-// Completed requires preparation only if the launch declared artifacts; failed
+// Completed requires preparation only for required artifact mode; failed
 // may publish partial results. Neither outcome takes a path or artifact flag.
 type ConcludeActionRequest struct {
 	Outcome ActionConclusionOutcome `json:"outcome"`
