@@ -185,6 +185,14 @@ export interface ExecuteActionResponse {
   outcome: IntentOutcome;
   reason?: string;
   result: ActionResult;
+  /** Set only when the Action launched: whether its end is announced to the requesting session. */
+  notification?: ActionNotification;
+}
+
+/** How the requester learns that a launched execution ended; `reason` says why a notice cannot reach the session. */
+export interface ActionNotification {
+  available: boolean;
+  reason?: string;
 }
 
 /** The Actions a project's agents may request, in hiveryn.yaml `availableActions` order; entries include example `suggestions`. */
@@ -239,14 +247,6 @@ export interface ActionResult {
   artifacts: ActionArtifacts;
   activity: ActionAgentActivity;
   attention: ActionAgentAttention;
-}
-
-export const MAX_ACTION_WAIT_SECONDS = 30;
-
-export interface ActionWaitResult {
-  result: ActionResult;
-  changed: boolean;
-  timed_out: boolean;
 }
 
 export const ACTION_EVENT_TYPE = "action_changed";

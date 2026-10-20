@@ -294,12 +294,26 @@ type ExecuteActionRequest struct {
 // intent verdict — approved or auto_approved (the Action was launched and now
 // runs independently), denied_by_user (it never ran) or error (it could not
 // start; Reason says why). Result is the execution record under the execution
-// id, which is also the intent id; follow it with the result and wait tools.
-// The call never waits for the Action to deliver.
+// id, which is also the intent id. The call never waits for the Action to
+// end: a launched execution announces its end to the requester with an
+// action_ended agent message, and Notification says whether that notice can
+// reach the requesting session; it is set only when the Action launched.
 type ExecuteActionResponse struct {
-	Outcome IntentOutcome `json:"outcome"`
-	Reason  string        `json:"reason,omitempty"`
-	Result  ActionResult  `json:"result"`
+	Outcome      IntentOutcome       `json:"outcome"`
+	Reason       string              `json:"reason,omitempty"`
+	Result       ActionResult        `json:"result"`
+	Notification *ActionNotification `json:"notification,omitempty"`
+}
+
+// ActionNotification says how the requester learns that a launched execution
+// ended. Available means Hiveryn delivers one notice into the requesting
+// conversation (the architect's next session, or this worker session) when
+// the execution reaches completed or failed, whatever ends it; otherwise
+// Reason says why delivery to this session is not available and the requester
+// reads getActionResult itself.
+type ActionNotification struct {
+	Available bool   `json:"available"`
+	Reason    string `json:"reason,omitempty"`
 }
 
 // AvailableActionList is the Actions an architect may request: exactly the
@@ -392,22 +406,6 @@ type ActionResult struct {
 	Artifacts      ActionArtifacts      `json:"artifacts"`
 	Activity       ActionAgentActivity  `json:"activity"`
 	Attention      ActionAgentAttention `json:"attention"`
-}
-
-// MaxActionWaitSeconds caps one waitForActionResult call; a caller that needs
-// longer waits again.
-const MaxActionWaitSeconds = 30
-
-// ActionWaitResult is one bounded wait: the result at return, and whether the
-// wait ended on a change (Changed) or at its timeout (TimedOut). A change is
-// a status change or an attention change — input_required appearing, clearing
-// or changing reason — measured against the result when the wait began, so a
-// repeated wait on an unchanged condition blocks until its timeout. An
-// already-final execution returns at once with neither set.
-type ActionWaitResult struct {
-	Result   ActionResult `json:"result"`
-	Changed  bool         `json:"changed"`
-	TimedOut bool         `json:"timed_out"`
 }
 
 // ActionEventType discriminates events on the actions stream

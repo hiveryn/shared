@@ -9,7 +9,7 @@
  * means the agent acted on the message. A message is retained while no
  * recipient session runs and never launches one.
  */
-export type AgentMessageKind = "ticket_concluded";
+export type AgentMessageKind = "ticket_concluded" | "action_ended";
 
 export type AgentMessageState =
   | "pending_commit"
