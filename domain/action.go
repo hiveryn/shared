@@ -12,11 +12,11 @@ import (
 // The checkout is defined by two files the daemon reads live, on the machine
 // where it lives:
 //
-//   - action.yaml: the keys name (equal to the directory name), description
+//   - action.yaml: the keys name (equal to the registered name), description
 //     (what the action does and what the caller's prompt must contain) and
 //     artifacts (the textual contract of the delivered package, including a
-//     schema summary where useful), plus the optional suggestions: a list of
-//     ready-made prompts offered in the manual launch form. No other key is
+//     schema summary where useful), and required suggestions: a list of
+//     example prompts offered to users and agents. No other key is
 //     allowed.
 //   - KICKOFF.md: the launch instructions, containing the placeholders
 //     {{prompt}} and {{output_dir}} exactly once or more each; no other
@@ -33,11 +33,12 @@ import (
 // segment in API routes and an output-folder segment.
 var actionNamePattern = regexp.MustCompile(`^[a-z0-9][a-z0-9._-]{0,63}$`)
 
-// Bounds on action.yaml suggestions: at most MaxActionSuggestions entries,
-// each nonblank, unique and at most MaxActionSuggestionLength characters.
+// Bounds on required action.yaml suggestions: 1–MaxActionSuggestions entries,
+// each nonblank, unique and at most MaxActionSuggestionWords whitespace-separated words (120 total).
 const (
-	MaxActionSuggestions      = 10
-	MaxActionSuggestionLength = 1000
+	MaxActionSuggestions           = 3
+	MaxActionSuggestionWords       = 60
+	MaxActionSuggestionsTotalWords = 120
 )
 
 // ValidActionName reports whether name is a well-formed action name: lowercase
@@ -59,10 +60,8 @@ type ActionProblem struct {
 // cannot be launched. RunningExecutionID names the execution currently
 // occupying the action, if any.
 //
-// Suggestions are the action.yaml suggested prompts, in file order: manual
-// launch conveniences that only prefill the prompt. They are part of the
-// library views (ActionList, a single definition) and are left out of an
-// architect's AvailableActionList.
+// Suggestions are required example prompts in file order, shared by manual
+// launch and agent discovery. Callers adapt example inputs to their request.
 //
 // Machine is where the checkout lives and the Action runs (empty means
 // local); Path is a path on that machine. Variants lists the configured agent
@@ -305,7 +304,7 @@ type ExecuteActionResponse struct {
 
 // AvailableActionList is the Actions an architect may request: exactly the
 // names in its hiveryn.yaml availableActions, in that order, each enriched
-// from the library (without Suggestions, which are manual-launch only). A configured name with no directory in the library is
+// from the library (including Suggestions). A configured name with no directory in the library is
 // listed invalid with a problem saying so, never dropped.
 type AvailableActionList struct {
 	Actions []ActionDefinition `json:"actions"`

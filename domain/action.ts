@@ -5,7 +5,7 @@ import type { Session } from "./session";
  * Actions are global, agent-operated procedures, independent of architects.
  * Each is registered in `HIVERYN_HOME/actions.yaml` (name → existing Git
  * checkout plus optional machine; omitted means local) and defined by the
- * checkout's `action.yaml` (`name`, `description`, `artifacts`, optional
+ * checkout's `action.yaml` (`name`, `description`, `artifacts`, required
  * `suggestions`) and
  * `KICKOFF.md` (containing `{{prompt}}` and `{{output_dir}}`). At most one
  * execution of an action runs at a time, globally. A completed execution's
@@ -16,9 +16,10 @@ import type { Session } from "./session";
 /** Mirrors `ValidActionName` in action.go. */
 export const ACTION_NAME_PATTERN = /^[a-z0-9][a-z0-9._-]{0,63}$/;
 
-/** Mirrors `MaxActionSuggestions` / `MaxActionSuggestionLength` in action.go. */
-export const MAX_ACTION_SUGGESTIONS = 10;
-export const MAX_ACTION_SUGGESTION_LENGTH = 1000;
+/** Mirrors `MaxActionSuggestions` / `MaxActionSuggestionWords` in action.go. */
+export const MAX_ACTION_SUGGESTIONS = 3;
+export const MAX_ACTION_SUGGESTION_WORDS = 60;
+export const MAX_ACTION_SUGGESTIONS_TOTAL_WORDS = 120;
 
 export interface ActionProblem {
   path: string;
@@ -36,9 +37,8 @@ export interface ActionDefinition {
   description: string;
   artifacts: string;
   /**
-   * action.yaml suggested prompts, in file order: manual-launch conveniences
-   * that only prefill the prompt. Absent when none are defined, and never
-   * present in an architect's `AvailableActionList`.
+   * action.yaml suggested prompts, in file order: examples shared by manual launch and agent discovery.
+   * Required for valid definitions; adapt example inputs to the actual request.
    */
   suggestions?: string[];
   valid: boolean;
@@ -181,7 +181,7 @@ export interface ExecuteActionResponse {
   result: ActionResult;
 }
 
-/** The Actions a project's agents may request, in hiveryn.yaml `availableActions` order; entries never carry `suggestions`. */
+/** The Actions a project's agents may request, in hiveryn.yaml `availableActions` order; entries include example `suggestions`. */
 export interface AvailableActionList {
   actions: ActionDefinition[];
 }
