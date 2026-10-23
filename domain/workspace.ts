@@ -4,20 +4,14 @@
  * never described or validated by the workspace surface.
  */
 export type ArtifactKind =
-  | "PROJECT_OVERVIEW"
-  | "PROJECT_STATE"
-  | "ROADMAP_CURRENT"
-  | "ARCHITECT_SYSTEM"
+  | "OVERVIEW"
   | "WORKFLOW"
   | "HIVERYN_YAML";
 
 /** The complete, ordered catalog. describeArtifact accepts exactly these. */
 export const ARTIFACT_KINDS: readonly ArtifactKind[] = [
   "HIVERYN_YAML",
-  "PROJECT_OVERVIEW",
-  "PROJECT_STATE",
-  "ROADMAP_CURRENT",
-  "ARCHITECT_SYSTEM",
+  "OVERVIEW",
   "WORKFLOW",
 ];
 

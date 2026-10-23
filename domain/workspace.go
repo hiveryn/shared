@@ -8,18 +8,14 @@ import "time"
 type ArtifactKind string
 
 const (
-	ArtifactProjectOverview ArtifactKind = "PROJECT_OVERVIEW"
-	ArtifactProjectState    ArtifactKind = "PROJECT_STATE"
-	ArtifactRoadmapCurrent  ArtifactKind = "ROADMAP_CURRENT"
-	ArtifactArchitectSystem ArtifactKind = "ARCHITECT_SYSTEM"
+	ArtifactProjectOverview ArtifactKind = "OVERVIEW"
 	ArtifactWorkflow        ArtifactKind = "WORKFLOW"
 	ArtifactHiverynYAML     ArtifactKind = "HIVERYN_YAML"
 )
 
 func (k ArtifactKind) Valid() bool {
 	switch k {
-	case ArtifactProjectOverview, ArtifactProjectState, ArtifactRoadmapCurrent,
-		ArtifactArchitectSystem, ArtifactWorkflow, ArtifactHiverynYAML:
+	case ArtifactProjectOverview, ArtifactWorkflow, ArtifactHiverynYAML:
 		return true
 	default:
 		return false
@@ -32,9 +28,6 @@ func ArtifactKinds() []ArtifactKind {
 	return []ArtifactKind{
 		ArtifactHiverynYAML,
 		ArtifactProjectOverview,
-		ArtifactProjectState,
-		ArtifactRoadmapCurrent,
-		ArtifactArchitectSystem,
 		ArtifactWorkflow,
 	}
 }

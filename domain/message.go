@@ -19,6 +19,8 @@ import "time"
 // AgentMessageKind names what a message announces.
 type AgentMessageKind string
 
+const AgentMessageWorkspaceValidation AgentMessageKind = "workspace_validation"
+
 const (
 	// AgentMessageTicketConcluded: a worker's approved, persisted ticket
 	// conclusion. Payload: ticket_id, outcome, concluded_at.

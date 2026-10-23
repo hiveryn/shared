@@ -14,7 +14,7 @@
  * after the configured delay, addressed to the project architect, which may
  * answer it with `answerQuestion`.
  */
-export type AgentMessageKind = "ticket_concluded" | "action_ended" | "question_escalated";
+export type AgentMessageKind = "ticket_concluded" | "action_ended" | "question_escalated" | "workspace_validation";
 
 export type AgentMessageState =
   | "pending_commit"
