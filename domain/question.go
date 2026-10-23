@@ -45,6 +45,21 @@ const (
 	// QuestionTimeoutText is askQuestion's exact reply when nobody answered
 	// within QuestionTimeout.
 	QuestionTimeoutText = "User didn't respond within 1 hour, stop here and wait for user to get back"
+	// QuestionArchitectAnswerPrefix starts askQuestion's reply when the
+	// project architect, not the user, answered an escalated worker question.
+	// The answer text follows it verbatim. An architect answer is never
+	// presented as the user's answer or approval.
+	QuestionArchitectAnswerPrefix = "Answered by the project architect, not the user: "
+)
+
+// QuestionAnswerSource says who answered a question: the user in the desktop
+// (the default and the only source for architect and Action questions) or
+// the owning architect through answerQuestion, after an escalation.
+type QuestionAnswerSource string
+
+const (
+	QuestionAnsweredByUser      QuestionAnswerSource = "user"
+	QuestionAnsweredByArchitect QuestionAnswerSource = "architect"
 )
 
 // QuestionStatus is a question's lifecycle. A question starts pending and is
@@ -174,9 +189,9 @@ type QuestionOrigin struct {
 // session event stream: type "question", status "required" carries it in raw
 // (question_id, question, answers, recommended_index, origin, created_at,
 // expires_at); status "resolved" carries question_id, status and, when
-// answered, answer, or reason otherwise. The resolved event is published for
-// every resolution, so the backlog replays a pending question only while it is
-// still answerable.
+// answered, answer and answered_by, or reason otherwise. The resolved event is
+// published for every resolution, so the backlog replays a pending question
+// only while it is still answerable.
 type AgentQuestion struct {
 	ID               string         `json:"question_id"`
 	Question         string         `json:"question"`
@@ -187,7 +202,9 @@ type AgentQuestion struct {
 	CreatedAt        time.Time      `json:"created_at"`
 	ExpiresAt        time.Time      `json:"expires_at"`
 	Answer           string         `json:"answer,omitempty"`
-	Reason           string         `json:"reason,omitempty"`
+	// AnsweredBy is set with Status answered: who gave Answer.
+	AnsweredBy QuestionAnswerSource `json:"answered_by,omitempty"`
+	Reason     string               `json:"reason,omitempty"`
 }
 
 // AnswerQuestionRequest is the desktop's answer: one suggested answer's text
@@ -203,4 +220,35 @@ type AskQuestionResult struct {
 	QuestionID string         `json:"question_id"`
 	Status     QuestionStatus `json:"status"`
 	Text       string         `json:"text"`
+	// AnsweredBy is set with Status answered.
+	AnsweredBy QuestionAnswerSource `json:"answered_by,omitempty"`
+}
+
+// Worker question escalation. A ticket worker's question that the user has
+// not answered after the daemon's configured delay is announced to the
+// project architect as an agent message of kind AgentMessageQuestionEscalated
+// (one per question). The architect may then answer it with answerQuestion,
+// authorized daemon-side: only a running architect session of the question's
+// project, and only for an escalated ticket-worker question. Escalation does
+// not extend the question's expiry and never launches a session; a question
+// resolved before the notice is delivered withdraws the notice.
+
+// ArchitectAnswerOutcome is answerQuestion's result: answered (the worker
+// received this answer) or not_answerable (the question was already resolved,
+// or has not been escalated to the architect; Reason says which). Both are
+// successful tool results, so an agent never retries a settled question.
+type ArchitectAnswerOutcome string
+
+const (
+	ArchitectAnswerAnswered      ArchitectAnswerOutcome = "answered"
+	ArchitectAnswerNotAnswerable ArchitectAnswerOutcome = "not_answerable"
+)
+
+// ArchitectAnswerResult is the daemon's reply to an architect's answerQuestion.
+// Question is the question as it stands after the call (answered by the
+// architect, or whatever resolution won instead; pending when not escalated).
+type ArchitectAnswerResult struct {
+	Outcome  ArchitectAnswerOutcome `json:"outcome"`
+	Reason   string                 `json:"reason,omitempty"`
+	Question AgentQuestion          `json:"question"`
 }

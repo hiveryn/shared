@@ -26,6 +26,18 @@ export const NOTIFICATION_SENT_TEXT = "Notification sent to user";
 /** askQuestion's exact reply when nobody answered within the hour. */
 export const QUESTION_TIMEOUT_TEXT =
   "User didn't respond within 1 hour, stop here and wait for user to get back";
+/**
+ * Starts askQuestion's reply when the project architect, not the user,
+ * answered an escalated worker question; the answer follows verbatim.
+ */
+export const QUESTION_ARCHITECT_ANSWER_PREFIX = "Answered by the project architect, not the user: ";
+
+/**
+ * Who answered: the user in the desktop, or the owning architect through
+ * `answerQuestion` after a ticket worker's question was escalated to it. An
+ * architect answer is never presented as the user's answer or approval.
+ */
+export type QuestionAnswerSource = "user" | "architect";
 
 /**
  * `pending` until resolved exactly once: `answered` (the agent received the
@@ -50,7 +62,7 @@ export interface QuestionOrigin {
  * `{ type: "question", status: "required", raw: { question_id, question,
  * answers, recommended_index, origin, created_at, expires_at } }` and ends with
  * `{ type: "question", status: "resolved", raw: { question_id, status, answer?,
- * reason? } }`, published for every resolution.
+ * answered_by?, reason? } }`, published for every resolution.
  */
 export interface AgentQuestion {
   question_id: string;
@@ -63,7 +75,23 @@ export interface AgentQuestion {
   created_at: string;
   expires_at: string;
   answer?: string;
+  /** Set with status `answered`: who gave `answer`. */
+  answered_by?: QuestionAnswerSource;
   reason?: string;
+}
+
+/**
+ * The architect's `answerQuestion` result: `answered` (the worker received the
+ * answer) or `not_answerable` (already resolved, or not escalated to the
+ * architect; see `reason`). `question` is the question as it stands after the
+ * call.
+ */
+export type ArchitectAnswerOutcome = "answered" | "not_answerable";
+
+export interface ArchitectAnswerResult {
+  outcome: ArchitectAnswerOutcome;
+  reason?: string;
+  question: AgentQuestion;
 }
 
 /** The desktop's answer: a suggested answer's text or free text, sent verbatim. */

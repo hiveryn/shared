@@ -30,6 +30,14 @@ const (
 	// execution_id, action, outcome (completed|failed), error (the daemon's
 	// reason when the agent did not conclude), package (bool).
 	AgentMessageActionEnded AgentMessageKind = "action_ended"
+	// AgentMessageQuestionEscalated: a ticket worker's askQuestion has gone
+	// unanswered by the user for the configured delay; the project architect
+	// may answer it with answerQuestion. Addressed to the architect. Payload:
+	// question_id, session_id, ticket_id, question, answers,
+	// recommended_index, created_at, expires_at, elapsed_seconds. Exactly one
+	// per question; withdrawn (failed) when the question resolves before it
+	// is delivered.
+	AgentMessageQuestionEscalated AgentMessageKind = "question_escalated"
 )
 
 // AgentMessageState is the delivery lifecycle.

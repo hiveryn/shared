@@ -9,7 +9,12 @@
  * means the agent acted on the message. A message is retained while no
  * recipient session runs and never launches one.
  */
-export type AgentMessageKind = "ticket_concluded" | "action_ended";
+/**
+ * `question_escalated`: a ticket worker's question the user has not answered
+ * after the configured delay, addressed to the project architect, which may
+ * answer it with `answerQuestion`.
+ */
+export type AgentMessageKind = "ticket_concluded" | "action_ended" | "question_escalated";
 
 export type AgentMessageState =
   | "pending_commit"
