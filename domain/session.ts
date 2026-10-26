@@ -1,3 +1,4 @@
+import type { ConversationCapabilities, InteractionMode } from "./conversation";
 import type { CommitRef } from "./commit";
 import type { IntentOutcome } from "./intent";
 import type { TicketOutcome } from "./ticket";
@@ -40,6 +41,8 @@ export interface AgentProfileSnapshot {
  * runs and resumes; the files are read live by the worker, never copied.
  */
 export interface Session {
+  interaction_mode?: InteractionMode;
+  conversation?: ConversationCapabilities;
   machine?: string;
   connection?: "connected" | "disconnected" | "missing";
   id: string;
@@ -102,6 +105,7 @@ export interface SessionEvent {
  * request instead of being dropped or substituted.
  */
 export interface CreateSessionRequest {
+  interaction_mode?: InteractionMode;
   session_type: SessionType;
   architect_key: string;
   ticket_id?: string;
@@ -218,7 +222,14 @@ export interface TerminalInfo {
   workdir_display_path?: string;
 }
 
-export interface TerminalWorkdir { machine?: string; id: string; title: string; path: string; display_path: string; default: boolean; }
+export interface TerminalWorkdir {
+  machine?: string;
+  id: string;
+  title: string;
+  path: string;
+  display_path: string;
+  default: boolean;
+}
 
 export interface CreateTerminalParams {
   workdir_id: string;

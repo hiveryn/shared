@@ -68,11 +68,13 @@ type AgentProfileSnapshot struct {
 // retained across runs and resumes; the files themselves are read live by the
 // worker and never copied.
 type Session struct {
-	Machine     string `json:"machine,omitempty"`
-	SSH         string `json:"-"`
-	RemoteToken string `json:"-"`
-	RemotePort  int    `json:"-"`
-	Connection  string `json:"connection,omitempty"`
+	InteractionMode InteractionMode          `json:"interaction_mode"`
+	Conversation    ConversationCapabilities `json:"conversation"`
+	Machine         string                   `json:"machine,omitempty"`
+	SSH             string                   `json:"-"`
+	RemoteToken     string                   `json:"-"`
+	RemotePort      int                      `json:"-"`
+	Connection      string                   `json:"connection,omitempty"`
 
 	ID                 string           `json:"id"`
 	ArchitectKey       string           `json:"architect_key"`
@@ -132,10 +134,11 @@ type SessionEvent struct {
 // or empty list is a valid selection of nothing. The daemon validates every
 // entry and rejects the request rather than dropping or substituting a path.
 type CreateSessionRequest struct {
-	SessionType  SessionType `json:"session_type"`
-	ArchitectKey string      `json:"architect_key"`
-	TicketID     string      `json:"ticket_id,omitempty"`
-	Workflows    []string    `json:"workflows,omitempty"`
+	InteractionMode InteractionMode `json:"interaction_mode,omitempty"`
+	SessionType     SessionType     `json:"session_type"`
+	ArchitectKey    string          `json:"architect_key"`
+	TicketID        string          `json:"ticket_id,omitempty"`
+	Workflows       []string        `json:"workflows,omitempty"`
 }
 
 // SpawnTicketWorkerRequest is an architect's request to launch a worker for
@@ -177,10 +180,11 @@ type SpawnedTicketWorker struct {
 }
 
 type CreateSessionParams struct {
-	Machine     string
-	SSH         string
-	RemoteToken string
-	RemotePort  int
+	InteractionMode InteractionMode
+	Machine         string
+	SSH             string
+	RemoteToken     string
+	RemotePort      int
 
 	ID                 string
 	ArchitectKey       string

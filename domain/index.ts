@@ -8,3 +8,5 @@ export * from "./session";
 export * from "./ticket";
 export * from "./workflow";
 export * from "./workspace";
+
+export * from "./conversation";
