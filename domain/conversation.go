@@ -44,7 +44,7 @@ type ConversationItem struct {
 	Text         string    `json:"text,omitempty"`
 	Tool         string    `json:"tool,omitempty"`
 	Status       string    `json:"status"`
-	At           time.Time `json:"at"`
+	At           time.Time `json:"at,omitzero"`
 }
 
 // Items are ordered by revision. A page is bounded by SnapshotRevision;

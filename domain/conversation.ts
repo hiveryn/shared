@@ -34,7 +34,7 @@ export interface ConversationItem {
   text?: string;
   tool?: string;
   status: string;
-  at: string;
+  at?: string;
 }
 export interface ConversationPage {
   items: ConversationItem[];
