@@ -42,3 +42,27 @@ export interface ConversationPage {
   next_revision: number;
   has_more: boolean;
 }
+
+export interface SubmissionPage {
+  submissions: Submission[];
+  next_sequence: number;
+  has_more: boolean;
+}
+export interface ArchivedChat {
+  id: string;
+  sequence: number;
+  architect_key: string;
+  session_type: "architect" | "ticket";
+  context_id: string;
+  agent: string;
+  model?: string;
+  profile_name: string;
+  created_at: string;
+  ended_at: string;
+  lifecycle: "concluded" | "discarded" | "interrupted";
+}
+export interface ArchivedChatPage {
+  chats: ArchivedChat[];
+  next_sequence: number;
+  has_more: boolean;
+}
