@@ -2,8 +2,7 @@ import type { CommitRef } from "./commit";
 import type { IntentOutcome } from "./intent";
 import type { TicketOutcome } from "./ticket";
 
-/** `action` sessions run one Action execution: `architect_key` is empty and `context_id` is the execution id. */
-export type SessionType = "architect" | "ticket" | "action";
+export type SessionType = "architect" | "ticket";
 
 /** `architect`: launched through an approved spawnTicketWorker request. */
 export type SessionCreatedBy = "desktop" | "architect";

@@ -25,13 +25,6 @@ const (
 	// AgentMessageTicketConcluded: a worker's approved, persisted ticket
 	// conclusion. Payload: ticket_id, outcome, concluded_at.
 	AgentMessageTicketConcluded AgentMessageKind = "ticket_concluded"
-	// AgentMessageActionEnded: an agent-requested Action execution reached
-	// its final status — the agent's approved conclusion, the user's cancel,
-	// a launch or resume failure, or a daemon-restart interruption — and
-	// getActionResult serves it. Addressed to the requesting agent. Payload:
-	// execution_id, action, outcome (completed|failed), error (the daemon's
-	// reason when the agent did not conclude), package (bool).
-	AgentMessageActionEnded AgentMessageKind = "action_ended"
 	// AgentMessageQuestionEscalated: a ticket worker's askQuestion has gone
 	// unanswered by the user for the configured delay; the project architect
 	// may answer it with answerQuestion. Addressed to the architect. Payload:

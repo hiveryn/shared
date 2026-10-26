@@ -15,7 +15,6 @@ import type { SessionType } from "./session";
 export type IntentType =
   | "concludeSession"
   | "createWorkTicket"
-  | "executeAction"
   | "spawnTicketWorker";
 
 /**

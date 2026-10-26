@@ -47,14 +47,12 @@ export type QuestionAnswerSource = "user" | "architect";
  */
 export type QuestionStatus = "pending" | "answered" | "expired" | "cancelled" | "interrupted";
 
-/** Derived from the session record; `architect_key` is empty for an Action session. */
+/** Derived from the session record. */
 export interface QuestionOrigin {
   architect_key: string;
   session_id: string;
   session_type: SessionType;
   ticket_id?: string;
-  action?: string;
-  execution_id?: string;
 }
 
 /**

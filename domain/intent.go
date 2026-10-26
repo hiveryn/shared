@@ -22,10 +22,6 @@ type IntentType string
 const (
 	IntentTypeConcludeSession  IntentType = "concludeSession"
 	IntentTypeCreateWorkTicket IntentType = "createWorkTicket"
-	// IntentTypeExecuteAction is an architect's or worker's request to run an
-	// Action with a chosen variant. It is blocking (wait-then-allow, like
-	// createWorkTicket): the intent id is also the Action execution id.
-	IntentTypeExecuteAction IntentType = "executeAction"
 	// IntentTypeSpawnTicketWorker is an architect's request to launch a worker
 	// session for one of its backlog tickets with a chosen variant and an
 	// explicit workflow selection. It is blocking (wait-then-allow, like
@@ -35,7 +31,7 @@ const (
 
 func (t IntentType) Valid() bool {
 	switch t {
-	case IntentTypeConcludeSession, IntentTypeCreateWorkTicket, IntentTypeExecuteAction, IntentTypeSpawnTicketWorker:
+	case IntentTypeConcludeSession, IntentTypeCreateWorkTicket, IntentTypeSpawnTicketWorker:
 		return true
 	default:
 		return false
@@ -219,9 +215,6 @@ type ApproveIntentRequest struct {
 // DeferredIntentStatus is the lifecycle of a deferred intent. Approval and
 // execution are separate facts: running means the user approved and the
 // operation started; only completed means it succeeded.
-//
-// The set deliberately matches the agreed Actions status model, so a future
-// Action can keep the one caller-visible id from request to run completion.
 type DeferredIntentStatus string
 
 const (

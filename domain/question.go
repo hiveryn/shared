@@ -53,7 +53,7 @@ const (
 )
 
 // QuestionAnswerSource says who answered a question: the user in the desktop
-// (the default and the only source for architect and Action questions) or
+// (the default and the only source for architect questions) or
 // the owning architect through answerQuestion, after an escalation.
 type QuestionAnswerSource string
 
@@ -174,15 +174,12 @@ func NormalizeQuestionResponse(answer string) (string, error) {
 }
 
 // QuestionOrigin is where a question came from, derived from the session
-// record daemon-side. ArchitectKey is empty for an Action session, whose
-// ExecutionID and Action name it carries instead.
+// record daemon-side.
 type QuestionOrigin struct {
 	ArchitectKey string      `json:"architect_key"`
 	SessionID    string      `json:"session_id"`
 	SessionType  SessionType `json:"session_type"`
 	TicketID     string      `json:"ticket_id,omitempty"`
-	Action       string      `json:"action,omitempty"`
-	ExecutionID  string      `json:"execution_id,omitempty"`
 }
 
 // AgentQuestion is one question as the desktop renders it. It travels on the
