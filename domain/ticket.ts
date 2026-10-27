@@ -7,33 +7,44 @@ export interface TicketWarning {
   message: string;
 }
 
-/** Outcome of inspecting a path reference where it lives; unverified means it could not be inspected. */
-export type PathReferenceStatus = "present" | "missing" | "unverified";
+/** Namespace a reference addresses (see reference.go ParseReference). */
+export type ReferenceKind = "ticket" | "architect" | "repo";
 
-/** Where a path reference was interpreted; unknown (primary-repo machine undetermined) is never local. */
-export type PathReferenceLocation = "local" | "remote" | "unknown";
+/** Daemon verdict on a reference; unverified = could not be inspected, invalid = not a valid reference here. */
+export type ReferenceStatus = "present" | "missing" | "unverified" | "invalid";
 
-export interface TicketIdReference {
+/** Where a reference's target lives; unknown is never local. */
+export type ReferenceLocation = "local" | "remote" | "unknown";
+
+/** The worker MCP tool that reads a reference. */
+export type ReferenceAccess = "readTicket" | "readContext" | "listContext";
+
+export type PathKind = "file" | "directory";
+
+export const ARCHITECT_REFERENCE_PREFIX = "architect";
+
+/**
+ * Daemon-resolved view of one `references` entry. `value` is the exact string
+ * in ticket.md; `exists` mirrors `status === "present"`. Architect and repo
+ * references carry owner/target/location (machine when remote) and access.
+ */
+export interface TicketReference {
   value: string;
-  type: "ticket";
+  /** Absent for an invalid reference. */
+  kind?: ReferenceKind;
+  status: ReferenceStatus;
   exists: boolean;
-}
-
-export interface PathReference {
-  value: string;
-  type: "path";
-  /** Mirrors `status === "present"`. */
-  exists: boolean;
-  kind?: "file" | "directory";
-  status: PathReferenceStatus;
-  location: PathReferenceLocation;
-  /** The machine name, when `location` is remote. */
+  /** `architect` or the repo key. */
+  owner?: string;
+  /** Path relative to the owner's root; `.` is the root. */
+  target?: string;
+  location?: ReferenceLocation;
   machine?: string;
-  /** Why the path could not be inspected, when `status` is unverified. */
+  path_kind?: PathKind;
+  access?: ReferenceAccess;
+  /** Why the reference is invalid or unverified. */
   error?: string;
 }
-
-export type TicketReference = TicketIdReference | PathReference;
 
 export interface TicketSummary {
   id: string;

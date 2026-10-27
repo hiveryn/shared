@@ -24,49 +24,29 @@ type TicketWarning struct {
 	Message string `json:"message"`
 }
 
-type TicketReferenceType string
-type PathReferenceKind string
-
-// PathReferenceStatus is the outcome of inspecting a path reference where it
-// lives: present, confirmed missing, or unverified (it could not be
-// inspected; Error says why).
-type PathReferenceStatus string
-
-// PathReferenceLocation is where a path reference was interpreted: on the
-// daemon's machine, on a remote machine (Machine names it), or unknown when
-// the ticket's primary-repo machine could not be determined. Unknown is never
-// local.
-type PathReferenceLocation string
-
-const (
-	TicketReferenceTicket  TicketReferenceType = "ticket"
-	TicketReferencePath    TicketReferenceType = "path"
-	PathReferenceFile      PathReferenceKind   = "file"
-	PathReferenceDirectory PathReferenceKind   = "directory"
-
-	PathReferencePresent    PathReferenceStatus = "present"
-	PathReferenceMissing    PathReferenceStatus = "missing"
-	PathReferenceUnverified PathReferenceStatus = "unverified"
-
-	PathReferenceLocal   PathReferenceLocation = "local"
-	PathReferenceRemote  PathReferenceLocation = "remote"
-	PathReferenceUnknown PathReferenceLocation = "unknown"
-)
-
 // TicketReference is the daemon-resolved view of an entry in References.
-// Value remains the portable string serialized in ticket.md. Path references
-// always carry Status and Location (Exists mirrors Status == present); a
-// remote one names its Machine and an unverified one its Error. Ticket-ID
-// references carry only Exists.
+// Value remains the exact string serialized in ticket.md (see
+// ParseReference for the grammar). Every reference carries Status, and Exists
+// mirrors Status == present. Kind says which namespace it addresses; an
+// invalid reference has no Kind beyond what its Error explains.
+//
+// Architect and repo references also name their Owner (architect or the repo
+// key), Target (relative path), Location (and Machine when remote) and, when
+// present, PathKind. Access is the worker MCP tool that reads the reference:
+// readTicket for tickets, readContext for files, listContext for directories
+// (readContext until the kind is known).
 type TicketReference struct {
-	Value    string                `json:"value"`
-	Type     TicketReferenceType   `json:"type"`
-	Exists   bool                  `json:"exists"`
-	Kind     PathReferenceKind     `json:"kind,omitempty"`
-	Status   PathReferenceStatus   `json:"status,omitempty"`
-	Location PathReferenceLocation `json:"location,omitempty"`
-	Machine  string                `json:"machine,omitempty"`
-	Error    string                `json:"error,omitempty"`
+	Value    string            `json:"value"`
+	Kind     ReferenceKind     `json:"kind,omitempty"`
+	Status   ReferenceStatus   `json:"status"`
+	Exists   bool              `json:"exists"`
+	Owner    string            `json:"owner,omitempty"`
+	Target   string            `json:"target,omitempty"`
+	Location ReferenceLocation `json:"location,omitempty"`
+	Machine  string            `json:"machine,omitempty"`
+	PathKind PathKind          `json:"path_kind,omitempty"`
+	Access   ReferenceAccess   `json:"access,omitempty"`
+	Error    string            `json:"error,omitempty"`
 }
 
 type TicketSummary struct {
