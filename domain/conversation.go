@@ -15,6 +15,11 @@ type ConversationCapabilities struct {
 	NativePermissions bool   `json:"native_permissions"`
 	ExecutionLocation string `json:"execution_location"`
 	Limitation        string `json:"limitation,omitempty"`
+	// InputRoute names how send reaches the native conversation: "chat" for the
+	// daemon-owned structured transport, or the provider route into an existing
+	// terminal-owned session ("claude_async_rewake", "codex_thread_queue",
+	// "opencode_prompt_async"). Empty when send is unavailable.
+	InputRoute string `json:"input_route,omitempty"`
 }
 type SubmissionRequest struct {
 	RequestID string `json:"request_id"`
@@ -34,13 +39,21 @@ type Submission struct {
 	UpdatedAt    time.Time `json:"updated_at"`
 }
 type ConversationItem struct {
-	ID           string    `json:"id"`
-	SubmissionID string    `json:"submission_id"`
-	Sequence     int64     `json:"sequence"`
-	Revision     int64     `json:"revision"`
-	NativeTurnID string    `json:"native_turn_id,omitempty"`
-	Role         string    `json:"role"`
-	Origin       string    `json:"origin"`
+	ID           string `json:"id"`
+	SubmissionID string `json:"submission_id"`
+	Sequence     int64  `json:"sequence"`
+	Revision     int64  `json:"revision"`
+	NativeTurnID string `json:"native_turn_id,omitempty"`
+	Role         string `json:"role"`
+	Origin       string `json:"origin"`
+	// Via says how a user-role item entered the conversation: "terminal" (typed
+	// in the session's own TUI), "api" (a conversation API submission) or
+	// "notification" (the daemon's agent-message outbox). NativeOrigin is the
+	// provider's own unmodified provenance for that input (for example Claude
+	// turnOrigin "human" or "task_notification", Codex turn trigger "user" or
+	// "queue", OpenCode "prompt"). Both are omitted where unknown.
+	Via          string    `json:"via,omitempty"`
+	NativeOrigin string    `json:"native_origin,omitempty"`
 	Text         string    `json:"text,omitempty"`
 	Tool         string    `json:"tool,omitempty"`
 	Status       string    `json:"status"`
@@ -86,6 +99,9 @@ type ArchivedChat struct {
 	CreatedAt    time.Time   `json:"created_at"`
 	EndedAt      time.Time   `json:"ended_at"`
 	Lifecycle    string      `json:"lifecycle"`
+	// InteractionMode of the ended session; empty on descriptors archived
+	// before terminal-session history was retained (all of those were chat).
+	InteractionMode InteractionMode `json:"interaction_mode,omitempty"`
 }
 type ArchivedChatPage struct {
 	Chats        []ArchivedChat `json:"chats"`

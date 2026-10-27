@@ -5,6 +5,8 @@ export interface ConversationCapabilities {
   native_permissions: boolean;
   execution_location: "local" | "remote";
   limitation?: string;
+  /** "chat", or the provider route into a terminal-owned session; absent when send is unavailable. */
+  input_route?: "chat" | "claude_async_rewake" | "codex_thread_queue" | "opencode_prompt_async";
 }
 export interface SubmissionRequest {
   request_id: string;
@@ -31,6 +33,10 @@ export interface ConversationItem {
   native_turn_id?: string;
   role: string;
   origin: string;
+  /** How a user-role item entered: typed in the TUI, an API submission, or an outbox notification. */
+  via?: "terminal" | "api" | "notification";
+  /** The provider's own unmodified provenance for the input (e.g. "human", "task_notification", "queue", "prompt"). */
+  native_origin?: string;
   text?: string;
   tool?: string;
   status: string;
@@ -60,6 +66,8 @@ export interface ArchivedChat {
   created_at: string;
   ended_at: string;
   lifecycle: "concluded" | "discarded" | "interrupted";
+  /** Mode of the ended session; absent on descriptors archived before terminal history retention (chat). */
+  interaction_mode?: InteractionMode;
 }
 export interface ArchivedChatPage {
   chats: ArchivedChat[];
