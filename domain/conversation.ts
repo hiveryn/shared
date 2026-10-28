@@ -12,6 +12,36 @@ export interface SubmissionRequest {
   request_id: string;
   text: string;
 }
+/**
+ * User input is never queued by Hiveryn: delivering, then rejected, unknown or
+ * accepted; accepted input continues to running and a turn outcome. "queued"
+ * exists only for the chat owner's internal kickoff/notification entries.
+ */
+export type SubmissionStatus =
+  | "queued"
+  | "delivering"
+  | "rejected"
+  | "unknown"
+  | "accepted"
+  | "running"
+  | "blocked"
+  | "completed"
+  | "failed"
+  | "uncertain";
+
+/** Stable codes of a send that did not establish acceptance. DELIVERY_UNKNOWN is ambiguous; all others are definitive. */
+export type DeliveryCode =
+  | "SESSION_BUSY"
+  | "SESSION_NOT_RUNNING"
+  | "SESSION_ENDING"
+  | "SESSION_ARCHIVED"
+  | "SEND_UNAVAILABLE"
+  | "SEND_UNSUPPORTED"
+  | "DELIVERY_REJECTED"
+  | "DELIVERY_INTERRUPTED"
+  | "QUEUED_BEFORE_CUTOVER"
+  | "DELIVERY_UNKNOWN";
+
 export interface Submission {
   id: string;
   session_id: string;
@@ -19,9 +49,14 @@ export interface Submission {
   sequence: number;
   origin: string;
   text: string;
-  status: "queued" | "started" | "completed" | "failed" | "blocked" | "uncertain";
+  status: SubmissionStatus;
   native_turn_id?: string;
+  /** Stable reason of a rejected or unknown delivery. */
+  error_code?: DeliveryCode;
   error?: string;
+  /** When provider acceptance was established, and the evidence that established it. */
+  accepted_at?: string;
+  acceptance?: string;
   created_at: string;
   updated_at: string;
 }

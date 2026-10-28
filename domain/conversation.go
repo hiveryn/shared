@@ -25,19 +25,80 @@ type SubmissionRequest struct {
 	RequestID string `json:"request_id"`
 	Text      string `json:"text"`
 }
+
+// Submission is the durable receipt of one conversation input. User input is
+// delivered synchronously by POST /messages: the receipt names the outcome of
+// that attempt (Status, ErrorCode) and, separately, whether the provider
+// accepted it (AcceptedAt/Acceptance). Turn completion is later and distinct.
 type Submission struct {
-	ID           string    `json:"id"`
-	SessionID    string    `json:"session_id"`
-	RequestID    string    `json:"request_id"`
-	Sequence     int64     `json:"sequence"`
-	Origin       string    `json:"origin"`
-	Text         string    `json:"text"`
-	Status       string    `json:"status"`
-	NativeTurnID string    `json:"native_turn_id,omitempty"`
-	Error        string    `json:"error,omitempty"`
-	CreatedAt    time.Time `json:"created_at"`
-	UpdatedAt    time.Time `json:"updated_at"`
+	ID        string `json:"id"`
+	SessionID string `json:"session_id"`
+	RequestID string `json:"request_id"`
+	Sequence  int64  `json:"sequence"`
+	Origin    string `json:"origin"`
+	Text      string `json:"text"`
+	// Status is one of the SubmissionStatus constants.
+	Status       string `json:"status"`
+	NativeTurnID string `json:"native_turn_id,omitempty"`
+	// ErrorCode is the stable reason for a rejected or unknown delivery (a
+	// Delivery* / Session* / Send* code); Error is its readable detail, or the
+	// turn's failure.
+	ErrorCode string `json:"error_code,omitempty"`
+	Error     string `json:"error,omitempty"`
+	// AcceptedAt is when provider acceptance was established; Acceptance names
+	// that evidence (for example "codex_thread_queue", "claude_native_record",
+	// "opencode_prompt_async", "chat_turn_started"). Absent until accepted.
+	AcceptedAt *time.Time `json:"accepted_at,omitempty"`
+	Acceptance string     `json:"acceptance,omitempty"`
+	CreatedAt  time.Time  `json:"created_at"`
+	UpdatedAt  time.Time  `json:"updated_at"`
 }
+
+// Submission statuses. User input is never queued by Hiveryn: it is
+// delivering, then rejected, unknown or accepted; accepted input continues to
+// running and a turn outcome. queued exists only for the chat owner's internal
+// kickoff/notification entries.
+const (
+	SubmissionQueued     = "queued"
+	SubmissionDelivering = "delivering"
+	SubmissionRejected   = "rejected"
+	SubmissionUnknown    = "unknown"
+	SubmissionAccepted   = "accepted"
+	SubmissionRunning    = "running"
+	SubmissionBlocked    = "blocked"
+	SubmissionCompleted  = "completed"
+	SubmissionFailed     = "failed"
+	SubmissionUncertain  = "uncertain"
+)
+
+// Stable delivery codes of a send that did not establish acceptance.
+const (
+	// Definitive: nothing reached the provider and nothing will later.
+	DeliverySessionBusy         = "SESSION_BUSY"
+	DeliverySessionNotRunning   = "SESSION_NOT_RUNNING"
+	DeliverySessionEnding       = "SESSION_ENDING"
+	DeliverySessionArchived     = "SESSION_ARCHIVED"
+	DeliverySendUnavailable     = "SEND_UNAVAILABLE"
+	DeliverySendUnsupported     = "SEND_UNSUPPORTED"
+	DeliveryRejected            = "DELIVERY_REJECTED"
+	DeliveryInterrupted         = "DELIVERY_INTERRUPTED"
+	DeliveryQueuedBeforeCutover = "QUEUED_BEFORE_CUTOVER"
+	// Ambiguous: a hand-off was attempted and its acceptance is not
+	// established. Never resent; reconciled from native evidence.
+	DeliveryUnknown = "DELIVERY_UNKNOWN"
+)
+
+// DeliveryError is a send that did not establish provider acceptance. Code is
+// a Delivery* constant; Submission is the durable receipt when one exists
+// (every case except an archived or missing session).
+type DeliveryError struct {
+	Code       string
+	Message    string
+	Submission *Submission
+}
+
+func (e *DeliveryError) Error() string { return e.Code + ": " + e.Message }
+
 type ConversationItem struct {
 	ID           string `json:"id"`
 	SubmissionID string `json:"submission_id"`
