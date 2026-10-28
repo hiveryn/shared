@@ -142,39 +142,3 @@ type ConversationQuery struct {
 	AfterRevision, SnapshotRevision int64
 	Limit                           int
 }
-
-// SequenceQuery pages stable membership by admission sequence. Status fields are
-// current at read time; restart at zero to discover updates to existing entries.
-type SequenceQuery struct {
-	AfterSequence int64
-	Limit         int
-	ArchitectKey  string
-}
-type SubmissionPage struct {
-	Submissions  []Submission `json:"submissions"`
-	NextSequence int64        `json:"next_sequence"`
-	HasMore      bool         `json:"has_more"`
-}
-
-// ArchivedChat is a safe discovery descriptor, not a launchable session record.
-type ArchivedChat struct {
-	ID           string      `json:"id"`
-	Sequence     int64       `json:"sequence"`
-	ArchitectKey string      `json:"architect_key"`
-	SessionType  SessionType `json:"session_type"`
-	ContextID    string      `json:"context_id"`
-	Agent        string      `json:"agent"`
-	Model        string      `json:"model,omitempty"`
-	ProfileName  string      `json:"profile_name"`
-	CreatedAt    time.Time   `json:"created_at"`
-	EndedAt      time.Time   `json:"ended_at"`
-	Lifecycle    string      `json:"lifecycle"`
-	// InteractionMode of the ended session; empty on descriptors archived
-	// before terminal-session history was retained (all of those were chat).
-	InteractionMode InteractionMode `json:"interaction_mode,omitempty"`
-}
-type ArchivedChatPage struct {
-	Chats        []ArchivedChat `json:"chats"`
-	NextSequence int64          `json:"next_sequence"`
-	HasMore      bool           `json:"has_more"`
-}
