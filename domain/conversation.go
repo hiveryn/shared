@@ -167,3 +167,56 @@ type ConversationQuery struct {
 	AfterRevision, SnapshotRevision int64
 	Limit                           int
 }
+
+// Conversation stream (GET /api/sessions/{id}/stream, server-sent events).
+// One connection per selected session carries three independently stored
+// sources: conversation revisions (event "conversation", data a
+// ConversationPage, SSE id = its next_revision — the reconnect cursor),
+// question/intent controls ("controls", the complete durable control event
+// history, as GET /controls) and session status ("status"). Controls and
+// status are authoritative snapshots, sent on every connect and whenever they
+// change: the latest one replaces the previous. Only conversation pages are
+// incremental (upsert by id, highest revision wins). "reset" says the cursor
+// is not part of this conversation; the client drops its items and the stream
+// replays from revision 0.
+const (
+	StreamEventStatus       = "status"
+	StreamEventControls     = "controls"
+	StreamEventConversation = "conversation"
+	StreamEventReset        = "reset"
+)
+
+// Stream states: live (the session exists; history and send follow its
+// capabilities) or ended (concluded or discarded: the final history has been
+// sent before this status and the stream closes; reconnecting is pointless).
+const (
+	StreamStateLive  = "live"
+	StreamStateEnded = "ended"
+)
+
+// ConversationStreamStatus is the "status" event. Session is the live
+// session record without its kickoff prompt, role instructions and variant
+// environment/arguments. HistoryError is the latest native record read's
+// failure (a History* code with the original cause); it clears when a later
+// read succeeds, and already-sent history stays valid meanwhile.
+type ConversationStreamStatus struct {
+	State        string                   `json:"state"`
+	Session      *Session                 `json:"session,omitempty"`
+	HistoryError *ConversationStreamError `json:"history_error,omitempty"`
+}
+
+type ConversationStreamError struct {
+	Code    string `json:"code"`
+	Message string `json:"message"`
+}
+
+// ConversationStreamControls is the "controls" event: every durable
+// question/intent event of the session in seq order, reduced by the client.
+type ConversationStreamControls struct {
+	Events []SessionEvent `json:"events"`
+}
+
+// ConversationStreamReset is the "reset" event.
+type ConversationStreamReset struct {
+	Reason string `json:"reason"`
+}

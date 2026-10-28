@@ -1,3 +1,5 @@
+import type { Session, SessionEvent } from "./session";
+
 export type InteractionMode = "terminal" | "chat";
 export interface ConversationCapabilities {
   history: boolean;
@@ -101,3 +103,32 @@ export interface ConversationPage {
   has_more: boolean;
 }
 
+
+/**
+ * Conversation stream (GET /api/sessions/{id}/stream, server-sent events):
+ * conversation pages (SSE id = next_revision, the reconnect cursor), and
+ * authoritative controls/status snapshots sent on every connect and change
+ * (latest replaces previous). "reset": the cursor is not part of this
+ * conversation; drop items, the stream replays from revision 0.
+ */
+export type StreamEvent = "status" | "controls" | "conversation" | "reset";
+export type StreamState = "live" | "ended";
+
+export interface ConversationStreamError {
+  code: HistoryCode;
+  message: string;
+}
+/** "status": session omits prompt, instructions and variant env/args. */
+export interface ConversationStreamStatus {
+  state: StreamState;
+  session?: Session;
+  /** Latest native read failure; cleared when a later read succeeds. */
+  history_error?: ConversationStreamError;
+}
+/** "controls": every durable question/intent event, in seq order. */
+export interface ConversationStreamControls {
+  events: SessionEvent[];
+}
+export interface ConversationStreamReset {
+  reason: string;
+}
