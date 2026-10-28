@@ -68,8 +68,12 @@ export interface ConversationItem {
   native_turn_id?: string;
   role: string;
   origin: string;
-  /** How a user-role item entered: typed in the TUI, an API submission, or an outbox notification. */
-  via?: "terminal" | "api" | "notification";
+  /**
+   * How a user-role item entered: typed in the TUI, an API submission, an
+   * outbox notification, or the kickoff (the launch message Hiveryn sent,
+   * recorded text including any injected Overview/workflows).
+   */
+  via?: "terminal" | "api" | "notification" | "kickoff";
   /** The provider's own unmodified provenance for the input (e.g. "human", "task_notification", "queue", "prompt"). */
   native_origin?: string;
   text?: string;

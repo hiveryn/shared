@@ -108,8 +108,11 @@ type ConversationItem struct {
 	Role         string `json:"role"`
 	Origin       string `json:"origin"`
 	// Via says how a user-role item entered the conversation: "terminal" (typed
-	// in the session's own TUI), "api" (a conversation API submission) or
-	// "notification" (the daemon's agent-message outbox). NativeOrigin is the
+	// in the session's own TUI), "api" (a conversation API submission),
+	// "notification" (the daemon's agent-message outbox) or "kickoff" (the
+	// launch message Hiveryn sent, as the provider recorded it, including any
+	// injected Overview/workflows; never SYSTEM/developer instructions). Items
+	// of the kickoff's turn carry origin "kickoff". NativeOrigin is the
 	// provider's own unmodified provenance for that input (for example Claude
 	// turnOrigin "human" or "task_notification", Codex turn trigger "user" or
 	// "queue", OpenCode "prompt"). Both are omitted where unknown.
