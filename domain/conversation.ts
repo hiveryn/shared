@@ -63,8 +63,16 @@ export interface Submission {
 export interface ConversationItem {
   id: string;
   submission_id: string;
+  /**
+   * Display position within the session, following the native record's order
+   * (never timestamps). It can change: a late-discovered or out-of-order item
+   * is moved between its native neighbours as a new revision. Order by
+   * sequence, then id.
+   */
   sequence: number;
+  /** Feed cursor (discovery order); for incremental synchronization only. */
   revision: number;
+  /** Turn identity, separate from order. */
   native_turn_id?: string;
   role: string;
   origin: string;

@@ -102,6 +102,12 @@ func (e *DeliveryError) Error() string { return e.Code + ": " + e.Message }
 type ConversationItem struct {
 	ID           string `json:"id"`
 	SubmissionID string `json:"submission_id"`
+	// Sequence is the display position within the session, following the
+	// native record's order (never timestamps). It can change: an item
+	// discovered late or stored out of record order is moved between its
+	// native neighbours as a new revision. Order by Sequence, then ID.
+	// Revision is the feed cursor (discovery order), for incremental
+	// synchronization only; NativeTurnID/SubmissionID are turn identity.
 	Sequence     int64  `json:"sequence"`
 	Revision     int64  `json:"revision"`
 	NativeTurnID string `json:"native_turn_id,omitempty"`
@@ -124,7 +130,7 @@ type ConversationItem struct {
 	At           time.Time `json:"at,omitzero"`
 }
 
-// Items are ordered by revision. A page is bounded by SnapshotRevision;
+// Items are in revision (feed) order, not display order. A page is bounded by SnapshotRevision;
 // continue with that value, then use it as AfterRevision for the next poll.
 type ConversationPage struct {
 	Items            []ConversationItem `json:"items"`
