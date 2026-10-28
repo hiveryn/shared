@@ -4,6 +4,8 @@ export interface ConversationCapabilities {
   send: boolean;
   native_permissions: boolean;
   execution_location: "local" | "remote";
+  /** Configured machine key of a remote (SSH) session. */
+  machine?: string;
   limitation?: string;
   /** "chat", or the provider route into a terminal-owned session; absent when send is unavailable. */
   input_route?: "chat" | "claude_async_rewake" | "codex_thread_queue" | "opencode_prompt_async";
@@ -41,6 +43,9 @@ export type DeliveryCode =
   | "DELIVERY_INTERRUPTED"
   | "QUEUED_BEFORE_CUTOVER"
   | "DELIVERY_UNKNOWN";
+
+/** Stable codes of a GET /conversation that returned no page (the error envelope's code). */
+export type HistoryCode = "HISTORY_UNSUPPORTED" | "HISTORY_UNAVAILABLE" | "HISTORY_READ_FAILED";
 
 export interface Submission {
   id: string;

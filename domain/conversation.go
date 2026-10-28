@@ -14,7 +14,10 @@ type ConversationCapabilities struct {
 	Send              bool   `json:"send"`
 	NativePermissions bool   `json:"native_permissions"`
 	ExecutionLocation string `json:"execution_location"`
-	Limitation        string `json:"limitation,omitempty"`
+	// Machine is the configured machine key of a remote session (reached over
+	// SSH from the daemon host); empty for local sessions.
+	Machine    string `json:"machine,omitempty"`
+	Limitation string `json:"limitation,omitempty"`
 	// InputRoute names how send reaches the native conversation: "chat" for the
 	// daemon-owned structured transport, or the provider route into an existing
 	// terminal-owned session ("claude_async_rewake", "codex_thread_queue",
@@ -98,6 +101,28 @@ type DeliveryError struct {
 }
 
 func (e *DeliveryError) Error() string { return e.Code + ": " + e.Message }
+
+// Stable codes of a conversation history read that returned no page.
+const (
+	// HistoryUnsupported: this session's provider/location has no history
+	// route (remote OpenCode, an agent without a reader). Not retryable.
+	HistoryUnsupported = "HISTORY_UNSUPPORTED"
+	// HistoryUnavailable: the route exists but not now (no native id yet).
+	HistoryUnavailable = "HISTORY_UNAVAILABLE"
+	// HistoryReadFailed: the native record could not be read (unreachable
+	// machine, SSH failure, unreadable or ambiguous record). Retry later;
+	// nothing was returned, never an empty or silently stale page.
+	HistoryReadFailed = "HISTORY_READ_FAILED"
+)
+
+// ConversationError is a history read that returned no page; Code is a
+// History* constant and Message keeps the original cause.
+type ConversationError struct {
+	Code    string
+	Message string
+}
+
+func (e *ConversationError) Error() string { return e.Code + ": " + e.Message }
 
 type ConversationItem struct {
 	ID           string `json:"id"`
