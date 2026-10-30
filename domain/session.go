@@ -87,9 +87,12 @@ type Session struct {
 	Workflows          []string         `json:"workflows"`
 	Instructions       string           `json:"instructions,omitempty"`
 	CreatedBy          SessionCreatedBy `json:"created_by,omitempty"`
-	CreatedAt          time.Time        `json:"created_at"`
-	UpdatedAt          time.Time        `json:"updated_at"`
-	CurrentRun         *SessionRun      `json:"current_run,omitempty"`
+	// OwnerSessionID is the owning architect session of a companion session;
+	// empty for every other session type.
+	OwnerSessionID string      `json:"owner_session_id,omitempty"`
+	CreatedAt      time.Time   `json:"created_at"`
+	UpdatedAt      time.Time   `json:"updated_at"`
+	CurrentRun     *SessionRun `json:"current_run,omitempty"`
 }
 
 type SessionRun struct {
@@ -197,6 +200,7 @@ type CreateSessionParams struct {
 	Workflows          []string
 	Instructions       string
 	CreatedBy          SessionCreatedBy
+	OwnerSessionID     string
 }
 
 type CreateSessionRunRequest struct {

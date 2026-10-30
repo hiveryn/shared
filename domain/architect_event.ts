@@ -26,7 +26,9 @@ export type ArchitectEventReason =
   | "ticket_concluded"
   | "session_started"
   | "session_ended"
-  | "agent_message_changed";
+  | "agent_message_changed"
+  /** A companion of this architect changed; list companions again. */
+  | "companion_changed";
 
 /**
  * Published per architect key and fanned out to every subscriber of that

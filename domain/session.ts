@@ -3,10 +3,14 @@ import type { CommitRef } from "./commit";
 import type { IntentOutcome } from "./intent";
 import type { TicketOutcome } from "./ticket";
 
-export type SessionType = "architect" | "ticket";
+/** `companion`: see companion.ts; `context_id` is the companion name. */
+export type SessionType = "architect" | "ticket" | "companion";
 
-/** `architect`: launched through an approved spawnTicketWorker request. */
-export type SessionCreatedBy = "desktop" | "architect";
+/**
+ * `architect`: launched through an approved spawnTicketWorker request.
+ * `companion_startup`: a companion started with its architect session.
+ */
+export type SessionCreatedBy = "desktop" | "architect" | "companion_startup";
 
 export type SessionRunStatus = "running" | "completed" | "failed";
 
@@ -56,6 +60,8 @@ export interface Session {
   workflows: string[];
   instructions?: string;
   created_by?: SessionCreatedBy;
+  /** The owning architect session of a companion session. */
+  owner_session_id?: string;
   created_at: string;
   updated_at: string;
   current_run?: SessionRun;

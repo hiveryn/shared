@@ -1,6 +1,7 @@
 export * from "./architect_event";
 export * from "./errors";
 export * from "./commit";
+export * from "./companion";
 export * from "./intent";
 export * from "./message";
 export * from "./question";

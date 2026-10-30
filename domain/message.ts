@@ -14,7 +14,17 @@
  * after the configured delay, addressed to the project architect, which may
  * answer it with `answerQuestion`.
  */
-export type AgentMessageKind = "ticket_concluded" | "question_escalated" | "workspace_validation";
+export type AgentMessageKind =
+  | "ticket_concluded"
+  | "question_escalated"
+  | "workspace_validation"
+  /** Companion outcomes and messages; see companion.go and message.go. */
+  | "companion_startup"
+  | "companion_message"
+  | "architect_message"
+  | "companion_shutdown_requested"
+  | "companion_shutdown_outcome"
+  | "companion_failed";
 
 export type AgentMessageState =
   | "pending_commit"

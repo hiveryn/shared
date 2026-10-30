@@ -31,6 +31,11 @@ const (
 	// this architect's project changed state (created, handed, appeared,
 	// failed...). Clients list the messages again; the event carries no id.
 	ArchitectEventAgentMessageChanged ArchitectEventReason = "agent_message_changed"
+	// ArchitectEventCompanionChanged announces that a companion of this
+	// architect changed (status, shutdown, pending action requests). SessionID
+	// is the companion session when it has one. Clients list the companions
+	// again (GET /api/architects/{key}/companions).
+	ArchitectEventCompanionChanged ArchitectEventReason = "companion_changed"
 )
 
 func (r ArchitectEventReason) Valid() bool {
@@ -42,7 +47,8 @@ func (r ArchitectEventReason) Valid() bool {
 		ArchitectEventTicketConcluded,
 		ArchitectEventSessionStarted,
 		ArchitectEventSessionEnded,
-		ArchitectEventAgentMessageChanged:
+		ArchitectEventAgentMessageChanged,
+		ArchitectEventCompanionChanged:
 		return true
 	default:
 		return false

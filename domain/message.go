@@ -33,6 +33,33 @@ const (
 	// per question; withdrawn (failed) when the question resolves before it
 	// is delivered.
 	AgentMessageQuestionEscalated AgentMessageKind = "question_escalated"
+
+	// Companion messages (companion.go). All are addressed session:<id> to
+	// the exact architect or companion session concerned.
+	//
+	// AgentMessageCompanionStartup: the startup outcome of every configured
+	// companion of a new architect session, by name. Payload:
+	// architect_session_id, companions [{name, status, session_id, error}].
+	AgentMessageCompanionStartup AgentMessageKind = "companion_startup"
+	// AgentMessageCompanionMessage: a companion's sendMessageToArchitect or
+	// replyToArchitectMessage. Payload: architect_session_id,
+	// companion_session_id, companion, in_reply_to (replies).
+	AgentMessageCompanionMessage AgentMessageKind = "companion_message"
+	// AgentMessageArchitectMessage: the architect's sendMessageToCompanion or
+	// replyToCompanionMessage. Payload as AgentMessageCompanionMessage.
+	AgentMessageArchitectMessage AgentMessageKind = "architect_message"
+	// AgentMessageCompanionShutdownRequested: the shutdown instruction to a
+	// companion, carrying request_id. Payload: request_id, companion,
+	// architect_session_id, companion_session_id.
+	AgentMessageCompanionShutdownRequested AgentMessageKind = "companion_shutdown_requested"
+	// AgentMessageCompanionShutdownOutcome: a completed shutdown's handoff
+	// and actual termination outcome, to the architect. Payload: request_id,
+	// companion, status, handoff, error.
+	AgentMessageCompanionShutdownOutcome AgentMessageKind = "companion_shutdown_outcome"
+	// AgentMessageCompanionFailed: a companion became unavailable outside a
+	// shutdown (its process ended and could not be resumed). Payload:
+	// companion, companion_session_id, error.
+	AgentMessageCompanionFailed AgentMessageKind = "companion_failed"
 )
 
 // AgentMessageState is the delivery lifecycle.
