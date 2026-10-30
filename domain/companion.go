@@ -242,7 +242,26 @@ const (
 	// ActionRequestNotificationFailedCode: the phone alert failed, so no
 	// request was raised.
 	ActionRequestNotificationFailedCode = "ACTION_REQUEST_NOTIFICATION_FAILED"
+	// ActionRequestResolvedCode: a decision on a request that is already
+	// resolved (HTTP 409). The error's details.action is the recorded
+	// request with its authoritative outcome — so a client whose earlier
+	// decision's response was lost learns what was recorded.
+	ActionRequestResolvedCode = "ACTION_REQUEST_RESOLVED"
 )
+
+// ActionResolvedError is a decision on an already resolved request; Action is
+// the recorded request, its Status the authoritative outcome.
+type ActionResolvedError struct {
+	Action ActionRequest
+}
+
+func (e *ActionResolvedError) Error() string {
+	reason := e.Action.Reason
+	if reason == "" {
+		reason = "it was already " + string(e.Action.Status)
+	}
+	return "no longer decidable: " + reason
+}
 
 // ActionRequestStatus is a request's lifecycle; it resolves exactly once.
 type ActionRequestStatus string

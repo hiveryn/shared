@@ -132,3 +132,15 @@ export interface ActionDecisionRequest {
   decision: ActionDecision;
   message?: string;
 }
+
+/**
+ * Error code (HTTP 409) of a decision on a request that is already resolved.
+ * The error's `details` is an {@link ActionResolvedDetails}: the recorded
+ * request and its authoritative outcome. A 404 means the request is unknown
+ * to its session — its outcome is not known, not "nothing was authorized".
+ */
+export const ACTION_REQUEST_RESOLVED = "ACTION_REQUEST_RESOLVED";
+
+export interface ActionResolvedDetails {
+  action: ActionRequest;
+}
